@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Nuget">
+    <Description>C# SDK for the Upwork GraphQL API, focused on marketplace job search for freelancers.</Description>
+    <PackageTags>api;client;sdk;dotnet;graphql;upwork;marketplace;job-search;freelance</PackageTags>
+  </PropertyGroup>
+
+</Project>

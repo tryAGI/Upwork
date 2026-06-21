@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/libs/">
+    <Project Path="src/libs/Upwork/Upwork.csproj" />
+  </Folder>
+  <Folder Name="/src/tests/">
+    <Project Path="src/tests/IntegrationTests/IntegrationTests.csproj" />
+  </Folder>
+</Solution>

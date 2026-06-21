@@ -1,0 +1,27 @@
+name: MKDocs Deploy
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - 'autosdk.docs.json'
+      - '.github/workflows/mkdocs.yml'
+      - 'src/tests/IntegrationTests/**'
+      - 'README.md'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    uses: tryAGI/workflows/.github/workflows/mkdocs-pages.yml@main
+    secrets: inherit

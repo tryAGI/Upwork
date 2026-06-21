@@ -1,0 +1,46 @@
+site_name: Upwork .NET Documentation
+site_description: Documentation for the tryAGI .NET SDK for Upwork.
+site_url: https://tryagi.github.io/Upwork/
+repo_url: https://github.com/tryAGI/Upwork
+repo_name: tryAGI/Upwork
+edit_uri: edit/main/docs/
+nav:
+- Overview: index.md
+- Guides:
+  - Authentication: guides/authentication.md
+# EXAMPLES:START
+- Examples:
+  - Public Marketplace Job Search: examples/public-marketplace-job-search.md
+  - Authenticated Marketplace Job Search: examples/marketplace-job-search.md
+  - Marketplace Job Content: examples/marketplace-job-content.md
+# EXAMPLES:END
+
+theme:
+  name: tryagi
+  favicon: 'media/icon128.png'
+
+plugins:
+  - search
+  - copy-to-llm
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - meta
+  - toc:
+      permalink: ""
+      slugify: !!python/name:pymdownx.slugs.uslugify
+  - pymdownx.highlight:
+      linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.magiclink
+  - pymdownx.snippets:
+      check_paths: true
+  - pymdownx.superfences
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tabbed:
+      alternate_style: true
