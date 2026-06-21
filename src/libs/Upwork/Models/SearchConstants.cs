@@ -11,14 +11,66 @@ public static class UpworkJobTypes
     public const string Hourly = "HOURLY";
 
     /// <summary>
-    /// Fixed-price job in authenticated marketplace search.
+    /// Fixed-price job-posting creation value.
     /// </summary>
     public const string FixedPrice = "FIXED_PRICE";
 
     /// <summary>
-    /// Fixed-price job in public marketplace search.
+    /// Fixed-price marketplace search value.
     /// </summary>
     public const string Fixed = "FIXED";
+}
+
+/// <summary>
+/// Common job duration filter values.
+/// </summary>
+public static class UpworkJobDurations
+{
+    /// <summary>
+    /// One-week duration.
+    /// </summary>
+    public const string Week = "WEEK";
+
+    /// <summary>
+    /// One-month duration.
+    /// </summary>
+    public const string Month = "MONTH";
+
+    /// <summary>
+    /// Three-month duration.
+    /// </summary>
+    public const string Quarter = "QUARTER";
+
+    /// <summary>
+    /// Six-month duration.
+    /// </summary>
+    public const string Semester = "SEMESTER";
+
+    /// <summary>
+    /// Ongoing project.
+    /// </summary>
+    public const string Ongoing = "ONGOING";
+}
+
+/// <summary>
+/// Common marketplace workload filter values.
+/// </summary>
+public static class UpworkWorkloads
+{
+    /// <summary>
+    /// Full-time workload.
+    /// </summary>
+    public const string FullTime = "FULL_TIME";
+
+    /// <summary>
+    /// Part-time workload.
+    /// </summary>
+    public const string PartTime = "PART_TIME";
+
+    /// <summary>
+    /// As-needed workload.
+    /// </summary>
+    public const string AsNeeded = "AS_NEEDED";
 }
 
 /// <summary>
@@ -103,4 +155,93 @@ public static class UpworkSortOrders
     /// Descending sort order.
     /// </summary>
     public const string Descending = "DESC";
+}
+
+/// <summary>
+/// Vendor proposal sort fields.
+/// </summary>
+public static class UpworkVendorProposalSortFields
+{
+    /// <summary>
+    /// Sort by proposal creation timestamp.
+    /// </summary>
+    public const string CreatedDateTime = "CREATEDDATETIME";
+
+    /// <summary>
+    /// Sort by proposal modification timestamp.
+    /// </summary>
+    public const string ModifiedDateTime = "MODIFIEDDATETIME";
+}
+
+/// <summary>
+/// Vendor proposal status filter values.
+/// </summary>
+public static class UpworkProposalStatuses
+{
+    /// <summary>
+    /// Proposal was submitted and validated.
+    /// </summary>
+    public const string Accepted = "Accepted";
+
+    /// <summary>
+    /// Proposal was declined by the client.
+    /// </summary>
+    public const string Declined = "Declined";
+
+    /// <summary>
+    /// Proposal was withdrawn by the freelancer.
+    /// </summary>
+    public const string Withdrawn = "Withdrawn";
+
+    /// <summary>
+    /// Offer was sent or accepted through an invite flow.
+    /// </summary>
+    public const string Offered = "Offered";
+
+    /// <summary>
+    /// Proposal was activated after an accepted invite.
+    /// </summary>
+    public const string Activated = "Activated";
+
+    /// <summary>
+    /// Proposal was archived.
+    /// </summary>
+    public const string Archived = "Archived";
+
+    /// <summary>
+    /// Freelancer was hired.
+    /// </summary>
+    public const string Hired = "Hired";
+
+    /// <summary>
+    /// Proposal is pending validation.
+    /// </summary>
+    public const string Pending = "Pending";
+}
+
+/// <summary>
+/// Proposal reason type values.
+/// </summary>
+public static class UpworkReasonTypes
+{
+    /// <summary>
+    /// Reasons for proposal decline flows.
+    /// </summary>
+    public const string ProposalDecline = "PROPOSAL_DECLINE";
+}
+
+/// <summary>
+/// Vendor proposal annotation values.
+/// </summary>
+public static class UpworkVendorProposalAnnotations
+{
+    /// <summary>
+    /// Hidden proposal annotation.
+    /// </summary>
+    public const string Hidden = "Hidden";
+
+    /// <summary>
+    /// On-hold proposal annotation.
+    /// </summary>
+    public const string OnHold = "OnHold";
 }

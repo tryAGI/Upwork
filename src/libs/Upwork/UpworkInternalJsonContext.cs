@@ -9,4 +9,7 @@ namespace Upwork;
 [JsonSerializable(typeof(MarketplaceJobPostingsSearchQueryData))]
 [JsonSerializable(typeof(MarketplaceJobPostingQueryData))]
 [JsonSerializable(typeof(MarketplaceJobPostingsContentsQueryData))]
+[JsonSerializable(typeof(ProposalMetadataQueryData))]
+[JsonSerializable(typeof(VendorProposalQueryData))]
+[JsonSerializable(typeof(VendorProposalsQueryData))]
 internal sealed partial class UpworkInternalJsonContext : JsonSerializerContext;

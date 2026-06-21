@@ -17,12 +17,9 @@ public partial class Tests
 
         //// Search marketplace jobs with cursor pagination and recency sorting.
         var response = await client.SearchMarketplaceJobPostingsAsync(
-            new UpworkMarketplaceJobFilter
+            UpworkMarketplaceJobFilters.Keywords("dotnet graphql", first: 10) with
             {
-                SearchExpression = "dotnet graphql",
                 VerifiedPaymentOnly = true,
-                IncludeApplied = false,
-                Pagination = new UpworkCursorPagination(first: 10),
             },
             sortAttributes:
             [

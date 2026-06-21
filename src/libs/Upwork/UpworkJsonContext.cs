@@ -13,6 +13,11 @@ namespace Upwork;
 [JsonSerializable(typeof(UpworkTokenResponse))]
 [JsonSerializable(typeof(UpworkPublicMarketplaceJobFilter))]
 [JsonSerializable(typeof(UpworkMarketplaceJobFilter))]
+[JsonSerializable(typeof(UpworkVendorProposalFilter))]
+[JsonSerializable(typeof(UpworkVendorProposalSort))]
+[JsonSerializable(typeof(UpworkCursorPagination))]
+[JsonSerializable(typeof(UpworkOffsetPagination))]
+[JsonSerializable(typeof(UpworkAreaFilter))]
 [JsonSerializable(typeof(IReadOnlyList<UpworkMarketplaceJobPostingSearchSort>))]
 [JsonSerializable(typeof(IReadOnlyList<string>))]
 public sealed partial class UpworkJsonContext : JsonSerializerContext;

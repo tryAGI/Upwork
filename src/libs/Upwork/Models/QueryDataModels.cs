@@ -17,3 +17,15 @@ internal sealed record MarketplaceJobPostingQueryData(
 internal sealed record MarketplaceJobPostingsContentsQueryData(
     [property: JsonPropertyName("marketplaceJobPostingsContents")]
     IReadOnlyList<UpworkMarketplaceJobPostingContentRecord>? MarketplaceJobPostingsContents);
+
+internal sealed record ProposalMetadataQueryData(
+    [property: JsonPropertyName("proposalMetadata")]
+    UpworkProposalMetadata? ProposalMetadata);
+
+internal sealed record VendorProposalQueryData(
+    [property: JsonPropertyName("vendorProposal")]
+    UpworkVendorProposal? VendorProposal);
+
+internal sealed record VendorProposalsQueryData(
+    [property: JsonPropertyName("vendorProposals")]
+    UpworkVendorProposalsConnection? VendorProposals);

@@ -2,7 +2,7 @@
 
 Fetch full marketplace job content after finding a job ID from search.
 
-This example assumes `using Upwork;` is in scope and `accessToken` contains your Upwork OAuth access token.
+This example assumes `using Upwork;` is in scope and `accessToken` contains your Upwork access token.
 
 ```csharp
 using var client = new UpworkClient(accessToken);

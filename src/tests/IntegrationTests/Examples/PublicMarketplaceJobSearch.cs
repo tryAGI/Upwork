@@ -17,12 +17,10 @@ public partial class Tests
 
         //// Search current public marketplace jobs.
         var response = await client.SearchPublicMarketplaceJobPostingsAsync(
-            new UpworkPublicMarketplaceJobFilter
+            UpworkPublicMarketplaceJobFilters.Keywords("dotnet graphql", pageSize: 10) with
             {
-                SearchExpression = "dotnet graphql",
                 JobType = UpworkJobTypes.Fixed,
-                PaymentVerified = true,
-                Pagination = new UpworkOffsetPagination(pageOffset: 0, pageSize: 10),
+                VerifiedPaymentOnly = true,
             });
 
         response.Jobs.Should().NotBeNull();

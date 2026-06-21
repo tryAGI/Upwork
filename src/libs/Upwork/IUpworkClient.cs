@@ -55,4 +55,27 @@ public interface IUpworkClient
     Task<IReadOnlyList<UpworkMarketplaceJobPostingContentRecord>> GetMarketplaceJobPostingsContentsAsync(
         IReadOnlyList<string> ids,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Fetches metadata used by proposal workflows.
+    /// </summary>
+    Task<UpworkProposalMetadata> GetProposalMetadataAsync(
+        string? reasonType = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Fetches a vendor proposal by ID.
+    /// </summary>
+    Task<UpworkVendorProposal?> GetVendorProposalAsync(
+        string id,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Searches vendor proposals for freelancer and agency workflows.
+    /// </summary>
+    Task<UpworkVendorProposalsConnection> SearchVendorProposalsAsync(
+        UpworkVendorProposalFilter filter,
+        UpworkVendorProposalSort? sortAttribute = null,
+        UpworkCursorPagination? pagination = null,
+        CancellationToken cancellationToken = default);
 }

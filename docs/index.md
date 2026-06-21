@@ -9,8 +9,10 @@ C# SDK for the Upwork GraphQL API. The first supported surface is marketplace jo
 ## Features
 
 - Public marketplace job search
-- Authenticated marketplace job search with cursor paging and sort attributes
+- Authenticated marketplace job search with cursor paging, sort attributes, and typed filter builders
 - Marketplace job content lookup by job ID
+- Proposal metadata lookup and vendor proposal list/detail workflows for freelancers and agencies
+- Constants for marketplace job types, durations, workloads, experience levels, proposal statuses, and proposal sort fields
 - OAuth token exchange helpers for authorization-code, refresh-token, and enterprise client-credentials flows
 - Raw GraphQL execution escape hatch for fields that are not yet wrapped
 - Source-generated JSON serialization for trimming and NativeAOT compatibility
@@ -23,11 +25,9 @@ using Upwork;
 using var client = new UpworkClient(accessToken);
 
 var jobs = await client.SearchMarketplaceJobPostingsAsync(
-    new UpworkMarketplaceJobFilter
+    UpworkMarketplaceJobFilters.Keywords("dotnet graphql", first: 10) with
     {
-        SearchExpression = "dotnet graphql",
         VerifiedPaymentOnly = true,
-        Pagination = new UpworkCursorPagination(first: 10),
     },
     sortAttributes:
     [
@@ -37,6 +37,7 @@ var jobs = await client.SearchMarketplaceJobPostingsAsync(
 ```
 
 For public marketplace search, use `SearchPublicMarketplaceJobPostingsAsync` with `UpworkPublicMarketplaceJobFilter`.
+For freelancer proposal workflows, use `GetProposalMetadataAsync`, `SearchVendorProposalsAsync`, and `GetVendorProposalAsync`.
 
 <!-- EXAMPLES:START -->
 ### Public Marketplace Job Search
@@ -47,12 +48,10 @@ using var client = new UpworkClient(accessToken);
 
 // Search current public marketplace jobs.
 var response = await client.SearchPublicMarketplaceJobPostingsAsync(
-    new UpworkPublicMarketplaceJobFilter
+    UpworkPublicMarketplaceJobFilters.Keywords("dotnet graphql", pageSize: 10) with
     {
-        SearchExpression = "dotnet graphql",
         JobType = UpworkJobTypes.Fixed,
-        PaymentVerified = true,
-        Pagination = new UpworkOffsetPagination(pageOffset: 0, pageSize: 10),
+        VerifiedPaymentOnly = true,
     });
 ```
 
@@ -64,12 +63,9 @@ using var client = new UpworkClient(accessToken);
 
 // Search marketplace jobs with cursor pagination and recency sorting.
 var response = await client.SearchMarketplaceJobPostingsAsync(
-    new UpworkMarketplaceJobFilter
+    UpworkMarketplaceJobFilters.Keywords("dotnet graphql", first: 10) with
     {
-        SearchExpression = "dotnet graphql",
         VerifiedPaymentOnly = true,
-        IncludeApplied = false,
-        Pagination = new UpworkCursorPagination(first: 10),
     },
     sortAttributes:
     [
@@ -95,6 +91,51 @@ var search = await client.SearchMarketplaceJobPostingsAsync(
 var firstJob = search.Edges?.FirstOrDefault()?.Node;
 
 var job = await client.GetMarketplaceJobPostingAsync(firstJob.Id!);
+```
+
+### Proposal Metadata
+Read proposal metadata for freelancer proposal workflows.
+
+```csharp
+using var client = new UpworkClient(accessToken);
+
+// Fetch proposal reference metadata, including engagement durations and decline reasons.
+var metadata = await client.GetProposalMetadataAsync(UpworkReasonTypes.ProposalDecline);
+```
+
+### Vendor Proposal Search
+List vendor proposals for a freelancer or agency account.
+
+```csharp
+using var client = new UpworkClient(accessToken);
+
+// List accepted vendor proposals with cursor pagination.
+var response = await client.SearchVendorProposalsAsync(
+    UpworkVendorProposalFilters.ByStatus(UpworkProposalStatuses.Accepted),
+    pagination: new UpworkCursorPagination(first: 10));
+```
+
+### Vendor Proposal Details
+Read a vendor proposal after finding it in the freelancer proposal list.
+
+```csharp
+using var client = new UpworkClient(accessToken);
+
+// Find one accepted proposal and then load its detail record.
+var response = await client.SearchVendorProposalsAsync(
+    UpworkVendorProposalFilters.ByStatus(UpworkProposalStatuses.Accepted),
+    pagination: new UpworkCursorPagination(first: 1));
+
+var proposalId = response.Edges?
+    .Select(edge => edge.Node?.Id)
+    .FirstOrDefault(id => id is { Length: > 0 });
+
+if (proposalId is not { Length: > 0 })
+{
+    throw new AssertInconclusiveException("No accepted vendor proposals were returned for this account.");
+}
+
+var proposal = await client.GetVendorProposalAsync(proposalId);
 ```
 <!-- EXAMPLES:END -->
 

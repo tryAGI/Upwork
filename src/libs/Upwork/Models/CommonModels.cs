@@ -39,6 +39,14 @@ public sealed record UpworkFloatRange(
     [property: JsonPropertyName("rangeEnd")] decimal? RangeEnd = null);
 
 /// <summary>
+/// Geographic area filter by coordinates.
+/// </summary>
+public sealed record UpworkAreaFilter(
+    [property: JsonPropertyName("latitude")] decimal Latitude,
+    [property: JsonPropertyName("longitude")] decimal Longitude,
+    [property: JsonPropertyName("radius")] decimal Radius);
+
+/// <summary>
 /// Offset paging input used by public marketplace search.
 /// </summary>
 public sealed record UpworkOffsetPagination

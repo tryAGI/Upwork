@@ -309,4 +309,151 @@ internal static class UpworkQueries
           }
         }
         """;
+
+    public const string ProposalMetadata =
+        """
+        query proposalMetadata($reasonType: ReasonType) {
+          proposalMetadata {
+            engagementDurationValues {
+              id
+              label
+            }
+            reasons(reasonType: $reasonType) {
+              id
+              reason
+              alias
+            }
+          }
+        }
+        """;
+
+    public const string VendorProposal =
+        """
+        query vendorProposal($id: ID!) {
+          vendorProposal(id: $id) {
+            ...VendorProposalFields
+          }
+        }
+
+        fragment VendorProposalFields on VendorProposal {
+          id
+          marketplaceJobPosting {
+            id
+            content {
+              title
+              description
+            }
+            canClientReceiveContractProposal
+          }
+          terms {
+            chargeRate {
+              rawValue
+              currency
+              displayValue
+            }
+            estimatedDuration {
+              id
+              label
+            }
+            upfrontPaymentPercent
+          }
+          coverLetter
+          proposalCoverLetter
+          projectPlan {
+            id
+            milestones {
+              description
+              dueDate
+              amount
+            }
+          }
+          auditDetails {
+            createdDateTime
+            modifiedDateTime
+          }
+          status {
+            status
+            reason {
+              id
+              reason
+              description
+            }
+          }
+          annotations
+        }
+        """;
+
+    public const string VendorProposals =
+        """
+        query vendorProposals(
+          $filter: VendorProposalFilter!,
+          $sortAttribute: VendorProposalSortAttribute!,
+          $pagination: Pagination!
+        ) {
+          vendorProposals(
+            filter: $filter,
+            sortAttribute: $sortAttribute,
+            pagination: $pagination
+          ) {
+            totalCount
+            edges {
+              cursor
+              node {
+                ...VendorProposalFields
+              }
+            }
+            pageInfo {
+              endCursor
+              hasNextPage
+            }
+          }
+        }
+
+        fragment VendorProposalFields on VendorProposal {
+          id
+          marketplaceJobPosting {
+            id
+            content {
+              title
+              description
+            }
+            canClientReceiveContractProposal
+          }
+          terms {
+            chargeRate {
+              rawValue
+              currency
+              displayValue
+            }
+            estimatedDuration {
+              id
+              label
+            }
+            upfrontPaymentPercent
+          }
+          coverLetter
+          proposalCoverLetter
+          projectPlan {
+            id
+            milestones {
+              description
+              dueDate
+              amount
+            }
+          }
+          auditDetails {
+            createdDateTime
+            modifiedDateTime
+          }
+          status {
+            status
+            reason {
+              id
+              reason
+              description
+            }
+          }
+          annotations
+        }
+        """;
 }

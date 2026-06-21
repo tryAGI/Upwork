@@ -2,18 +2,16 @@
 
 Search public marketplace jobs with the Upwork GraphQL API.
 
-This example assumes `using Upwork;` is in scope and `accessToken` contains your Upwork OAuth access token.
+This example assumes `using Upwork;` is in scope and `accessToken` contains your Upwork access token.
 
 ```csharp
 using var client = new UpworkClient(accessToken);
 
 // Search current public marketplace jobs.
 var response = await client.SearchPublicMarketplaceJobPostingsAsync(
-    new UpworkPublicMarketplaceJobFilter
+    UpworkPublicMarketplaceJobFilters.Keywords("dotnet graphql", pageSize: 10) with
     {
-        SearchExpression = "dotnet graphql",
         JobType = UpworkJobTypes.Fixed,
-        PaymentVerified = true,
-        Pagination = new UpworkOffsetPagination(pageOffset: 0, pageSize: 10),
+        VerifiedPaymentOnly = true,
     });
 ```

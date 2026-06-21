@@ -233,6 +233,86 @@ public sealed class UpworkClient : IUpworkClient, IDisposable
     }
 
     /// <inheritdoc />
+    public async Task<UpworkProposalMetadata> GetProposalMetadataAsync(
+        string? reasonType = null,
+        CancellationToken cancellationToken = default)
+    {
+        var variables = new JsonObject
+        {
+            ["reasonType"] = string.IsNullOrWhiteSpace(reasonType) ? null : reasonType,
+        };
+
+        var data = await ExecuteAsync(
+            UpworkQueries.ProposalMetadata,
+            UpworkInternalJsonContext.Default.ProposalMetadataQueryData,
+            variables,
+            "proposalMetadata",
+            cancellationToken).ConfigureAwait(false);
+
+        return data?.ProposalMetadata
+            ?? throw new UpworkInvalidResponseException("The Upwork response did not include proposalMetadata.");
+    }
+
+    /// <inheritdoc />
+    public async Task<UpworkVendorProposal?> GetVendorProposalAsync(
+        string id,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(id);
+
+        var variables = new JsonObject
+        {
+            ["id"] = id,
+        };
+
+        var data = await ExecuteAsync(
+            UpworkQueries.VendorProposal,
+            UpworkInternalJsonContext.Default.VendorProposalQueryData,
+            variables,
+            "vendorProposal",
+            cancellationToken).ConfigureAwait(false);
+
+        return data?.VendorProposal;
+    }
+
+    /// <inheritdoc />
+    public async Task<UpworkVendorProposalsConnection> SearchVendorProposalsAsync(
+        UpworkVendorProposalFilter filter,
+        UpworkVendorProposalSort? sortAttribute = null,
+        UpworkCursorPagination? pagination = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(filter);
+        ArgumentException.ThrowIfNullOrWhiteSpace(filter.Status);
+
+        sortAttribute ??= new UpworkVendorProposalSort(UpworkVendorProposalSortFields.CreatedDateTime);
+        pagination ??= new UpworkCursorPagination(first: 20);
+
+        var variables = new JsonObject
+        {
+            ["filter"] = JsonSerializer.SerializeToNode(
+                filter,
+                UpworkJsonContext.Default.UpworkVendorProposalFilter),
+            ["sortAttribute"] = JsonSerializer.SerializeToNode(
+                sortAttribute,
+                UpworkJsonContext.Default.UpworkVendorProposalSort),
+            ["pagination"] = JsonSerializer.SerializeToNode(
+                pagination,
+                UpworkJsonContext.Default.UpworkCursorPagination),
+        };
+
+        var data = await ExecuteAsync(
+            UpworkQueries.VendorProposals,
+            UpworkInternalJsonContext.Default.VendorProposalsQueryData,
+            variables,
+            "vendorProposals",
+            cancellationToken).ConfigureAwait(false);
+
+        return data?.VendorProposals
+            ?? throw new UpworkInvalidResponseException("The Upwork response did not include vendorProposals.");
+    }
+
+    /// <inheritdoc />
     public void Dispose()
     {
         if (_disposeHttpClient)
