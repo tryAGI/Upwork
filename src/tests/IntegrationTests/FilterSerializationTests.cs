@@ -107,6 +107,26 @@ public partial class Tests
     }
 
     [TestMethod]
+    public void DirectUploadLinkInput_UsesUpworkSchemaFieldNames()
+    {
+        var input = new UpworkCreateDirectUploadLinkInput("proposal.pdf")
+        {
+            ContentType = "application/pdf",
+            MaxFileSize = 1_048_576,
+            SslEnabled = true,
+            MetaData = "proposal-attachment",
+        };
+
+        var json = JsonSerializer.Serialize(input, UpworkJsonContext.Default.UpworkCreateDirectUploadLinkInput);
+
+        json.Should().Contain("\"fileName\":\"proposal.pdf\"");
+        json.Should().Contain("\"contentType\":\"application/pdf\"");
+        json.Should().Contain("\"maxFileSize\":1048576");
+        json.Should().Contain("\"sslEnabled\":true");
+        json.Should().Contain("\"metaData\":\"proposal-attachment\"");
+    }
+
+    [TestMethod]
     public void OAuthAuthorizationUri_IncludesExpectedParameters()
     {
         var uri = UpworkOAuthClient.CreateAuthorizationUri(

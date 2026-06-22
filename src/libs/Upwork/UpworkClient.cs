@@ -313,6 +313,67 @@ public sealed class UpworkClient : IUpworkClient, IDisposable
     }
 
     /// <inheritdoc />
+    public async Task<bool> ConfirmFilesAsync(
+        IReadOnlyList<string> fileIds,
+        bool skipMissing = true,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(fileIds);
+        if (fileIds.Count == 0)
+        {
+            throw new ArgumentException("At least one file ID is required.", nameof(fileIds));
+        }
+
+        foreach (var fileId in fileIds)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(fileId);
+        }
+
+        var variables = new JsonObject
+        {
+            ["fileIds"] = JsonSerializer.SerializeToNode(fileIds, UpworkJsonContext.Default.IReadOnlyListString),
+            ["skipMissing"] = skipMissing,
+        };
+
+        var data = await ExecuteAsync(
+            UpworkQueries.ConfirmFiles,
+            UpworkInternalJsonContext.Default.ConfirmFilesMutationData,
+            variables,
+            "confirmFiles",
+            cancellationToken).ConfigureAwait(false);
+
+        return data?.ConfirmFiles
+            ?? throw new UpworkInvalidResponseException("The Upwork response did not include confirmFiles.");
+    }
+
+    /// <inheritdoc />
+    public async Task<UpworkFileInfo> CreateJobApplicationProposalUploadLinkAsync(
+        UpworkCreateDirectUploadLinkInput input,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        ArgumentException.ThrowIfNullOrWhiteSpace(input.FileName);
+
+        var variables = new JsonObject
+        {
+            ["input"] = JsonSerializer.SerializeToNode(
+                input,
+                UpworkJsonContext.Default.UpworkCreateDirectUploadLinkInput),
+        };
+
+        var data = await ExecuteAsync(
+            UpworkQueries.CreateDirectUploadLinkForJobApplicationProposal,
+            UpworkInternalJsonContext.Default.CreateDirectUploadLinkForJobApplicationProposalMutationData,
+            variables,
+            "createDirectUploadLinkForJAClientProposal",
+            cancellationToken).ConfigureAwait(false);
+
+        return data?.CreateDirectUploadLinkForJobApplicationProposal
+            ?? throw new UpworkInvalidResponseException(
+                "The Upwork response did not include createDirectUploadLinkForJAClientProposal.");
+    }
+
+    /// <inheritdoc />
     public void Dispose()
     {
         if (_disposeHttpClient)

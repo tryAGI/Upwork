@@ -12,6 +12,7 @@ C# SDK for the Upwork GraphQL API. The first supported surface is marketplace jo
 - Authenticated marketplace job search with cursor paging, sort attributes, and typed filter builders
 - Marketplace job content lookup by job ID
 - Proposal metadata lookup and vendor proposal list/detail workflows for freelancers and agencies
+- Proposal attachment upload-link and file-confirmation mutation helpers
 - Constants for marketplace job types, durations, workloads, experience levels, proposal statuses, and proposal sort fields
 - OAuth token exchange helpers for authorization-code, refresh-token, and enterprise client-credentials flows
 - Raw GraphQL execution escape hatch for fields that are not yet wrapped
@@ -38,6 +39,7 @@ var jobs = await client.SearchMarketplaceJobPostingsAsync(
 
 For public marketplace search, use `SearchPublicMarketplaceJobPostingsAsync` with `UpworkPublicMarketplaceJobFilter`.
 For freelancer proposal workflows, use `GetProposalMetadataAsync`, `SearchVendorProposalsAsync`, and `GetVendorProposalAsync`.
+Upwork's public GraphQL docs currently expose proposal attachment helper mutations, but not a vendor proposal submit/update mutation.
 
 <!-- EXAMPLES:START -->
 ### Public Marketplace Job Search

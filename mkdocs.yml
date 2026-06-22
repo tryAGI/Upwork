@@ -8,6 +8,7 @@ nav:
 - Overview: index.md
 - Guides:
   - Authentication: guides/authentication.md
+  - Proposal Mutations: guides/proposal-mutations.md
 # EXAMPLES:START
 - Examples:
   - Public Marketplace Job Search: examples/public-marketplace-job-search.md

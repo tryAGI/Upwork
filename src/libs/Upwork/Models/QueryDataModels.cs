@@ -29,3 +29,11 @@ internal sealed record VendorProposalQueryData(
 internal sealed record VendorProposalsQueryData(
     [property: JsonPropertyName("vendorProposals")]
     UpworkVendorProposalsConnection? VendorProposals);
+
+internal sealed record ConfirmFilesMutationData(
+    [property: JsonPropertyName("confirmFiles")]
+    bool? ConfirmFiles);
+
+internal sealed record CreateDirectUploadLinkForJobApplicationProposalMutationData(
+    [property: JsonPropertyName("createDirectUploadLinkForJAClientProposal")]
+    UpworkFileInfo? CreateDirectUploadLinkForJobApplicationProposal);

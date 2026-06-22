@@ -78,4 +78,19 @@ public interface IUpworkClient
         UpworkVendorProposalSort? sortAttribute = null,
         UpworkCursorPagination? pagination = null,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Confirms uploaded files by ID.
+    /// </summary>
+    Task<bool> ConfirmFilesAsync(
+        IReadOnlyList<string> fileIds,
+        bool skipMissing = true,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Creates a direct upload link for job-application proposal attachments.
+    /// </summary>
+    Task<UpworkFileInfo> CreateJobApplicationProposalUploadLinkAsync(
+        UpworkCreateDirectUploadLinkInput input,
+        CancellationToken cancellationToken = default);
 }

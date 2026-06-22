@@ -456,4 +456,25 @@ internal static class UpworkQueries
           annotations
         }
         """;
+
+    public const string ConfirmFiles =
+        """
+        mutation confirmFiles($fileIds: [ID!]!, $skipMissing: Boolean) {
+          confirmFiles(fileIds: $fileIds, skipMissing: $skipMissing)
+        }
+        """;
+
+    public const string CreateDirectUploadLinkForJobApplicationProposal =
+        """
+        mutation createDirectUploadLinkForJAClientProposal($input: CreateDirectUploadLinkInput!) {
+          createDirectUploadLinkForJAClientProposal(input: $input) {
+            id
+            uploadUrl
+            formKeyValues {
+              key
+              value
+            }
+          }
+        }
+        """;
 }

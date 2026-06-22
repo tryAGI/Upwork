@@ -1,4 +1,59 @@
+using System.Text.Json.Serialization;
+
 namespace Upwork;
+
+/// <summary>
+/// Input for creating a direct upload link for job-application proposal attachments.
+/// </summary>
+public sealed record UpworkCreateDirectUploadLinkInput(
+    [property: JsonPropertyName("fileName")] string FileName)
+{
+    /// <summary>
+    /// Upload-link expiration date.
+    /// </summary>
+    public string? ExpirationDate { get; init; }
+
+    /// <summary>
+    /// Maximum file size in bytes.
+    /// </summary>
+    public int? MaxFileSize { get; init; }
+
+    /// <summary>
+    /// MIME content type.
+    /// </summary>
+    public string? ContentType { get; init; }
+
+    /// <summary>
+    /// Whether SSL is enabled.
+    /// </summary>
+    public bool? SslEnabled { get; init; }
+
+    /// <summary>
+    /// File metadata.
+    /// </summary>
+    public string? MetaData { get; init; }
+}
+
+/// <summary>
+/// Direct upload link details returned by Upwork.
+/// </summary>
+public sealed record UpworkFileInfo
+{
+    /// <summary>
+    /// File identifier.
+    /// </summary>
+    public string? Id { get; init; }
+
+    /// <summary>
+    /// Upload URL.
+    /// </summary>
+    public Uri? UploadUrl { get; init; }
+
+    /// <summary>
+    /// Form key-values required by the upload endpoint.
+    /// </summary>
+    public IReadOnlyList<UpworkStringMapElement>? FormKeyValues { get; init; }
+}
 
 /// <summary>
 /// Metadata reference values for proposal workflows.

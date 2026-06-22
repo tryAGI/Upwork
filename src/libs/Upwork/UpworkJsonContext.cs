@@ -15,6 +15,7 @@ namespace Upwork;
 [JsonSerializable(typeof(UpworkMarketplaceJobFilter))]
 [JsonSerializable(typeof(UpworkVendorProposalFilter))]
 [JsonSerializable(typeof(UpworkVendorProposalSort))]
+[JsonSerializable(typeof(UpworkCreateDirectUploadLinkInput))]
 [JsonSerializable(typeof(UpworkCursorPagination))]
 [JsonSerializable(typeof(UpworkOffsetPagination))]
 [JsonSerializable(typeof(UpworkAreaFilter))]

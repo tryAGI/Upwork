@@ -47,6 +47,22 @@ public sealed record UpworkAreaFilter(
     [property: JsonPropertyName("radius")] decimal Radius);
 
 /// <summary>
+/// Key-value pair returned by Upwork map-style fields.
+/// </summary>
+public sealed record UpworkStringMapElement
+{
+    /// <summary>
+    /// Map key.
+    /// </summary>
+    public string? Key { get; init; }
+
+    /// <summary>
+    /// Map value.
+    /// </summary>
+    public string? Value { get; init; }
+}
+
+/// <summary>
 /// Offset paging input used by public marketplace search.
 /// </summary>
 public sealed record UpworkOffsetPagination
