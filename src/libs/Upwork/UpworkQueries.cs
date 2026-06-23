@@ -133,6 +133,9 @@ internal static class UpworkQueries
               cursor
               node {
                 id
+                job {
+                  ...MarketplaceJobPostingFields
+                }
                 title
                 description
                 ciphertext
@@ -189,8 +192,11 @@ internal static class UpworkQueries
                   totalReviews
                   totalFeedback
                   companyRid
+                  companyName
                   edcUserId
+                  lastContractPlatform
                   lastContractRid
+                  lastContractTitle
                   companyOrgUid
                   hasFinancialPrivacy
                 }
@@ -254,39 +260,518 @@ internal static class UpworkQueries
             }
           }
         }
+
+        fragment MarketplaceJobPostingFields on MarketplaceJobPosting {
+          id
+          workFlowState {
+            closeResult
+            status
+          }
+          ownership {
+            company {
+              id
+              rid
+              name
+              type
+              legacyType
+              photoUrl
+            }
+            team {
+              id
+              rid
+              name
+              type
+              legacyType
+              photoUrl
+            }
+          }
+          annotations {
+            tags
+            customFields {
+              key
+              value
+            }
+          }
+          activityStat {
+            applicationsBidStats {
+              avgRateBid {
+                rawValue
+                currency
+                displayValue
+              }
+              minRateBid {
+                rawValue
+                currency
+                displayValue
+              }
+              maxRateBid {
+                rawValue
+                currency
+                displayValue
+              }
+              avgInterviewedRateBid {
+                rawValue
+                currency
+                displayValue
+              }
+            }
+            jobActivity {
+              lastClientActivity
+              invitesSent
+              totalInvitedToInterview
+              totalHired
+              totalUnansweredInvites
+              totalOffered
+              totalRecommended
+            }
+          }
+          content {
+            title
+            description
+          }
+          attachments {
+            id
+            sequenceNumber
+            fileName
+            fileSize
+          }
+          classification {
+            category {
+              id
+              ontologyId
+              type
+              entityStatus
+              preferredLabel
+              definition
+              createdDateTime
+              modifiedDateTime
+            }
+            subCategory {
+              id
+              ontologyId
+              type
+              entityStatus
+              preferredLabel
+              definition
+              createdDateTime
+              modifiedDateTime
+            }
+            occupation {
+              id
+              ontologyId
+              type
+              entityStatus
+              preferredLabel
+              definition
+              createdDateTime
+              modifiedDateTime
+            }
+            skills {
+              id
+              ontologyId
+              type
+              entityStatus
+              preferredLabel
+              definition
+              createdDateTime
+              modifiedDateTime
+            }
+            additionalSkills {
+              id
+              ontologyId
+              type
+              entityStatus
+              preferredLabel
+              definition
+              createdDateTime
+              modifiedDateTime
+            }
+          }
+          segmentationData {
+            segmentationValues {
+              customValue
+              segmentationInfo {
+                id
+                label
+                referenceName
+                sortOrder
+                segmentationType {
+                  id
+                  name
+                  referenceName
+                }
+                skill {
+                  id
+                  ontologyId
+                  type
+                  entityStatus
+                  preferredLabel
+                  definition
+                  createdDateTime
+                  modifiedDateTime
+                }
+              }
+            }
+          }
+          contractTerms {
+            contractStartDate
+            contractEndDate
+            contractType
+            onSiteType
+            personsToHire
+            experienceLevel
+            notSurePersonsToHire
+            notSureExperiencelevel
+            fixedPriceContractTerms {
+              amount {
+                rawValue
+                currency
+                displayValue
+              }
+              maxAmount {
+                rawValue
+                currency
+                displayValue
+              }
+              engagementDuration {
+                id
+                label
+                weeks
+              }
+            }
+            hourlyContractTerms {
+              engagementDuration {
+                id
+                label
+                weeks
+              }
+              engagementType
+              notSureProjectDuration
+              hourlyBudgetType
+              hourlyBudgetMin
+              hourlyBudgetMax
+            }
+          }
+          contractorSelection {
+            proposalRequirement {
+              coverLetterRequired
+              freelancerMilestonesAllowed
+              screeningQuestions {
+                question
+                sequenceNumber
+              }
+            }
+            qualification {
+              contractorType
+              englishProficiency
+              hasPortfolio
+              hoursWorked
+              risingTalent
+              jobSuccessScore
+              minEarning
+              preferredGroups {
+                id
+                name
+                logo
+              }
+              preferenceTests {
+                id
+                name
+              }
+            }
+            location {
+              countries
+              states
+              timezones
+              localCheckRequired
+              localMarket
+              areas {
+                id
+                areaType
+                name
+              }
+              notSureLocationPreference
+              localDescription
+              localFlexibilityDescription
+            }
+          }
+          additionalSearchInfo {
+            highlightTitle
+          }
+          clientCompanyPublic {
+            id
+            legacyType
+            teamsEnabled
+            canHire
+            hidden
+            state
+            city
+            timezone
+            accountingEntity
+            billingType
+          }
+          canClientReceiveContractProposal
+        }
         """;
 
     public const string MarketplaceJobPosting =
         """
         query marketplaceJobPosting($id: ID!) {
           marketplaceJobPosting(id: $id) {
-            id
-            workFlowState {
-              closeResult
-              status
+            ...MarketplaceJobPostingFields
+          }
+        }
+
+        fragment MarketplaceJobPostingFields on MarketplaceJobPosting {
+          id
+          workFlowState {
+            closeResult
+            status
+          }
+          ownership {
+            company {
+              id
+              rid
+              name
+              type
+              legacyType
+              photoUrl
             }
-            annotations {
-              tags
-              customFields {
-                key
-                value
+            team {
+              id
+              rid
+              name
+              type
+              legacyType
+              photoUrl
+            }
+          }
+          annotations {
+            tags
+            customFields {
+              key
+              value
+            }
+          }
+          activityStat {
+            applicationsBidStats {
+              avgRateBid {
+                rawValue
+                currency
+                displayValue
+              }
+              minRateBid {
+                rawValue
+                currency
+                displayValue
+              }
+              maxRateBid {
+                rawValue
+                currency
+                displayValue
+              }
+              avgInterviewedRateBid {
+                rawValue
+                currency
+                displayValue
               }
             }
-            content {
-              title
-              description
+            jobActivity {
+              lastClientActivity
+              invitesSent
+              totalInvitedToInterview
+              totalHired
+              totalUnansweredInvites
+              totalOffered
+              totalRecommended
             }
-            attachments {
-              id
-              sequenceNumber
-              fileName
-              fileSize
-            }
-            additionalSearchInfo {
-              highlightTitle
-            }
-            canClientReceiveContractProposal
           }
+          content {
+            title
+            description
+          }
+          attachments {
+            id
+            sequenceNumber
+            fileName
+            fileSize
+          }
+          classification {
+            category {
+              id
+              ontologyId
+              type
+              entityStatus
+              preferredLabel
+              definition
+              createdDateTime
+              modifiedDateTime
+            }
+            subCategory {
+              id
+              ontologyId
+              type
+              entityStatus
+              preferredLabel
+              definition
+              createdDateTime
+              modifiedDateTime
+            }
+            occupation {
+              id
+              ontologyId
+              type
+              entityStatus
+              preferredLabel
+              definition
+              createdDateTime
+              modifiedDateTime
+            }
+            skills {
+              id
+              ontologyId
+              type
+              entityStatus
+              preferredLabel
+              definition
+              createdDateTime
+              modifiedDateTime
+            }
+            additionalSkills {
+              id
+              ontologyId
+              type
+              entityStatus
+              preferredLabel
+              definition
+              createdDateTime
+              modifiedDateTime
+            }
+          }
+          segmentationData {
+            segmentationValues {
+              customValue
+              segmentationInfo {
+                id
+                label
+                referenceName
+                sortOrder
+                segmentationType {
+                  id
+                  name
+                  referenceName
+                }
+                skill {
+                  id
+                  ontologyId
+                  type
+                  entityStatus
+                  preferredLabel
+                  definition
+                  createdDateTime
+                  modifiedDateTime
+                }
+              }
+            }
+          }
+          contractTerms {
+            contractStartDate
+            contractEndDate
+            contractType
+            onSiteType
+            personsToHire
+            experienceLevel
+            notSurePersonsToHire
+            notSureExperiencelevel
+            fixedPriceContractTerms {
+              amount {
+                rawValue
+                currency
+                displayValue
+              }
+              maxAmount {
+                rawValue
+                currency
+                displayValue
+              }
+              engagementDuration {
+                id
+                label
+                weeks
+              }
+            }
+            hourlyContractTerms {
+              engagementDuration {
+                id
+                label
+                weeks
+              }
+              engagementType
+              notSureProjectDuration
+              hourlyBudgetType
+              hourlyBudgetMin
+              hourlyBudgetMax
+            }
+          }
+          contractorSelection {
+            proposalRequirement {
+              coverLetterRequired
+              freelancerMilestonesAllowed
+              screeningQuestions {
+                question
+                sequenceNumber
+              }
+            }
+            qualification {
+              contractorType
+              englishProficiency
+              hasPortfolio
+              hoursWorked
+              risingTalent
+              jobSuccessScore
+              minEarning
+              preferredGroups {
+                id
+                name
+                logo
+              }
+              preferenceTests {
+                id
+                name
+              }
+            }
+            location {
+              countries
+              states
+              timezones
+              localCheckRequired
+              localMarket
+              areas {
+                id
+                areaType
+                name
+              }
+              notSureLocationPreference
+              localDescription
+              localFlexibilityDescription
+            }
+          }
+          additionalSearchInfo {
+            highlightTitle
+          }
+          clientCompanyPublic {
+            id
+            legacyType
+            teamsEnabled
+            canHire
+            hidden
+            state
+            city
+            timezone
+            accountingEntity
+            billingType
+          }
+          canClientReceiveContractProposal
         }
         """;
 

@@ -349,6 +349,11 @@ public sealed record UpworkMarketplaceJobPostingSearchResult
     public string? Id { get; init; }
 
     /// <summary>
+    /// Linked marketplace job posting aggregate.
+    /// </summary>
+    public UpworkMarketplaceJobPosting? Job { get; init; }
+
+    /// <summary>
     /// Job title.
     /// </summary>
     public string? Title { get; init; }
@@ -386,7 +391,7 @@ public sealed record UpworkMarketplaceJobPostingSearchResult
     /// <summary>
     /// Record number.
     /// </summary>
-    public long? RecordNumber { get; init; }
+    public string? RecordNumber { get; init; }
 
     /// <summary>
     /// Experience level.
@@ -431,7 +436,7 @@ public sealed record UpworkMarketplaceJobPostingSearchResult
     /// <summary>
     /// Preferred freelancer location.
     /// </summary>
-    public string? PreferredFreelancerLocation { get; init; }
+    public IReadOnlyList<string>? PreferredFreelancerLocation { get; init; }
 
     /// <summary>
     /// Whether preferred freelancer location is mandatory.
@@ -506,7 +511,7 @@ public sealed record UpworkMarketplaceJobPostingSearchResult
     /// <summary>
     /// Local distance to authenticated user.
     /// </summary>
-    public decimal? LocalJobUserDistance { get; init; }
+    public string? LocalJobUserDistance { get; init; }
 
     /// <summary>
     /// Weekly budget.
@@ -562,12 +567,12 @@ public sealed record UpworkMarketplaceJobPostingRelevance
     /// <summary>
     /// Publish time.
     /// </summary>
-    public DateTimeOffset? PublishTime { get; init; }
+    public string? PublishTime { get; init; }
 
     /// <summary>
     /// Hours inactive.
     /// </summary>
-    public decimal? HoursInactive { get; init; }
+    public int? HoursInactive { get; init; }
 }
 
 /// <summary>
@@ -621,14 +626,29 @@ public sealed record UpworkMarketplaceJobSearchClient
     public string? CompanyRid { get; init; }
 
     /// <summary>
+    /// Company name.
+    /// </summary>
+    public string? CompanyName { get; init; }
+
+    /// <summary>
     /// EDC user ID.
     /// </summary>
     public string? EdcUserId { get; init; }
 
     /// <summary>
+    /// Platform of the client's last contract.
+    /// </summary>
+    public string? LastContractPlatform { get; init; }
+
+    /// <summary>
     /// Last contract RID.
     /// </summary>
     public string? LastContractRid { get; init; }
+
+    /// <summary>
+    /// Title of the client's last contract.
+    /// </summary>
+    public string? LastContractTitle { get; init; }
 
     /// <summary>
     /// Company organization UID.
@@ -693,9 +713,19 @@ public sealed record UpworkMarketplaceJobPosting
     public UpworkMarketplaceJobPostingWorkflowState? WorkFlowState { get; init; }
 
     /// <summary>
+    /// Ownership details.
+    /// </summary>
+    public UpworkMarketplacePostingOwnership? Ownership { get; init; }
+
+    /// <summary>
     /// Job annotations.
     /// </summary>
     public UpworkMarketplaceJobPostingAnnotations? Annotations { get; init; }
+
+    /// <summary>
+    /// Job activity statistics.
+    /// </summary>
+    public UpworkMarketplacePostingActivityStat? ActivityStat { get; init; }
 
     /// <summary>
     /// Job content.
@@ -708,9 +738,34 @@ public sealed record UpworkMarketplaceJobPosting
     public IReadOnlyList<UpworkMarketplaceJobPostingAttachment>? Attachments { get; init; }
 
     /// <summary>
+    /// Marketplace classification attributes.
+    /// </summary>
+    public UpworkMarketplacePostingClassification? Classification { get; init; }
+
+    /// <summary>
+    /// Marketplace segmentation metadata.
+    /// </summary>
+    public UpworkMarketplacePostingSegmentationData? SegmentationData { get; init; }
+
+    /// <summary>
+    /// Contract terms advertised on the job.
+    /// </summary>
+    public UpworkMarketplacePostingContractTerms? ContractTerms { get; init; }
+
+    /// <summary>
+    /// Contractor selection criteria advertised on the job.
+    /// </summary>
+    public UpworkMarketplacePostingContractorSelection? ContractorSelection { get; init; }
+
+    /// <summary>
     /// Additional search info.
     /// </summary>
     public UpworkMarketplaceJobPostingAdditionalSearchInfo? AdditionalSearchInfo { get; init; }
+
+    /// <summary>
+    /// Public-facing client company details.
+    /// </summary>
+    public UpworkMarketplacePublicCompanyInfo? ClientCompanyPublic { get; init; }
 
     /// <summary>
     /// Whether the client can receive a contract proposal.
@@ -735,6 +790,58 @@ public sealed record UpworkMarketplaceJobPostingWorkflowState
 }
 
 /// <summary>
+/// Marketplace job ownership details.
+/// </summary>
+public sealed record UpworkMarketplacePostingOwnership
+{
+    /// <summary>
+    /// Company owning the job posting.
+    /// </summary>
+    public UpworkGenericOrganization? Company { get; init; }
+
+    /// <summary>
+    /// Team owning the job posting.
+    /// </summary>
+    public UpworkGenericOrganization? Team { get; init; }
+}
+
+/// <summary>
+/// Generic organization reference returned by Upwork.
+/// </summary>
+public sealed record UpworkGenericOrganization
+{
+    /// <summary>
+    /// Organization ID.
+    /// </summary>
+    public string? Id { get; init; }
+
+    /// <summary>
+    /// Organization record ID.
+    /// </summary>
+    public string? Rid { get; init; }
+
+    /// <summary>
+    /// Organization name.
+    /// </summary>
+    public string? Name { get; init; }
+
+    /// <summary>
+    /// Organization type.
+    /// </summary>
+    public string? Type { get; init; }
+
+    /// <summary>
+    /// Legacy organization type.
+    /// </summary>
+    public string? LegacyType { get; init; }
+
+    /// <summary>
+    /// Organization photo URL.
+    /// </summary>
+    public Uri? PhotoUrl { get; init; }
+}
+
+/// <summary>
 /// Marketplace job annotations.
 /// </summary>
 public sealed record UpworkMarketplaceJobPostingAnnotations
@@ -748,6 +855,89 @@ public sealed record UpworkMarketplaceJobPostingAnnotations
     /// Custom fields.
     /// </summary>
     public IReadOnlyList<UpworkCustomField>? CustomFields { get; init; }
+}
+
+/// <summary>
+/// Marketplace job activity statistics.
+/// </summary>
+public sealed record UpworkMarketplacePostingActivityStat
+{
+    /// <summary>
+    /// Bid statistics.
+    /// </summary>
+    public UpworkApplicationsBidStats? ApplicationsBidStats { get; init; }
+
+    /// <summary>
+    /// Job activity metrics.
+    /// </summary>
+    public UpworkJobActivity? JobActivity { get; init; }
+}
+
+/// <summary>
+/// Bid statistics for a marketplace job.
+/// </summary>
+public sealed record UpworkApplicationsBidStats
+{
+    /// <summary>
+    /// Average bid rate.
+    /// </summary>
+    public UpworkMoney? AvgRateBid { get; init; }
+
+    /// <summary>
+    /// Minimum bid rate.
+    /// </summary>
+    public UpworkMoney? MinRateBid { get; init; }
+
+    /// <summary>
+    /// Maximum bid rate.
+    /// </summary>
+    public UpworkMoney? MaxRateBid { get; init; }
+
+    /// <summary>
+    /// Average interviewed bid rate.
+    /// </summary>
+    public UpworkMoney? AvgInterviewedRateBid { get; init; }
+}
+
+/// <summary>
+/// Activity metrics for a marketplace job.
+/// </summary>
+public sealed record UpworkJobActivity
+{
+    /// <summary>
+    /// Last client activity timestamp.
+    /// </summary>
+    public string? LastClientActivity { get; init; }
+
+    /// <summary>
+    /// Number of invites sent.
+    /// </summary>
+    public int? InvitesSent { get; init; }
+
+    /// <summary>
+    /// Total invited to interview.
+    /// </summary>
+    public int? TotalInvitedToInterview { get; init; }
+
+    /// <summary>
+    /// Total hired.
+    /// </summary>
+    public int? TotalHired { get; init; }
+
+    /// <summary>
+    /// Total unanswered invites.
+    /// </summary>
+    public int? TotalUnansweredInvites { get; init; }
+
+    /// <summary>
+    /// Total offers made.
+    /// </summary>
+    public int? TotalOffered { get; init; }
+
+    /// <summary>
+    /// Total recommended candidates.
+    /// </summary>
+    public int? TotalRecommended { get; init; }
 }
 
 /// <summary>
@@ -790,6 +980,554 @@ public sealed record UpworkMarketplaceJobPostingAttachment
     /// File size in bytes.
     /// </summary>
     public long? FileSize { get; init; }
+}
+
+/// <summary>
+/// Marketplace job classification attributes.
+/// </summary>
+public sealed record UpworkMarketplacePostingClassification
+{
+    /// <summary>
+    /// Primary job category.
+    /// </summary>
+    public UpworkMarketplacePostingOntologyEntity? Category { get; init; }
+
+    /// <summary>
+    /// Job subcategory.
+    /// </summary>
+    public UpworkMarketplacePostingOntologyEntity? SubCategory { get; init; }
+
+    /// <summary>
+    /// Occupation classification.
+    /// </summary>
+    public UpworkMarketplacePostingOntologyEntity? Occupation { get; init; }
+
+    /// <summary>
+    /// Core skills required.
+    /// </summary>
+    public IReadOnlyList<UpworkMarketplacePostingOntologyEntity>? Skills { get; init; }
+
+    /// <summary>
+    /// Additional skills.
+    /// </summary>
+    public IReadOnlyList<UpworkMarketplacePostingOntologyEntity>? AdditionalSkills { get; init; }
+}
+
+/// <summary>
+/// Ontology entity returned in marketplace job classification and segmentation.
+/// </summary>
+public sealed record UpworkMarketplacePostingOntologyEntity
+{
+    /// <summary>
+    /// Entity ID.
+    /// </summary>
+    public string? Id { get; init; }
+
+    /// <summary>
+    /// Stable ontology ID.
+    /// </summary>
+    public string? OntologyId { get; init; }
+
+    /// <summary>
+    /// Entity type values.
+    /// </summary>
+    public IReadOnlyList<string>? Type { get; init; }
+
+    /// <summary>
+    /// Entity status.
+    /// </summary>
+    public string? EntityStatus { get; init; }
+
+    /// <summary>
+    /// Preferred display label.
+    /// </summary>
+    public string? PreferredLabel { get; init; }
+
+    /// <summary>
+    /// Entity definition.
+    /// </summary>
+    public string? Definition { get; init; }
+
+    /// <summary>
+    /// Creation timestamp.
+    /// </summary>
+    public string? CreatedDateTime { get; init; }
+
+    /// <summary>
+    /// Modification timestamp.
+    /// </summary>
+    public string? ModifiedDateTime { get; init; }
+}
+
+/// <summary>
+/// Marketplace job segmentation metadata.
+/// </summary>
+public sealed record UpworkMarketplacePostingSegmentationData
+{
+    /// <summary>
+    /// Segmentation values.
+    /// </summary>
+    public IReadOnlyList<UpworkMarketplacePostingSegmentationValue>? SegmentationValues { get; init; }
+}
+
+/// <summary>
+/// Marketplace job segmentation value.
+/// </summary>
+public sealed record UpworkMarketplacePostingSegmentationValue
+{
+    /// <summary>
+    /// Custom segmentation value entered by the client.
+    /// </summary>
+    public string? CustomValue { get; init; }
+
+    /// <summary>
+    /// Segmentation metadata.
+    /// </summary>
+    public UpworkMarketplacePostingSegmentationInfo? SegmentationInfo { get; init; }
+}
+
+/// <summary>
+/// Marketplace job segmentation metadata.
+/// </summary>
+public sealed record UpworkMarketplacePostingSegmentationInfo
+{
+    /// <summary>
+    /// Segmentation info ID.
+    /// </summary>
+    public string? Id { get; init; }
+
+    /// <summary>
+    /// Display label.
+    /// </summary>
+    public string? Label { get; init; }
+
+    /// <summary>
+    /// Reference name.
+    /// </summary>
+    public string? ReferenceName { get; init; }
+
+    /// <summary>
+    /// Sort order.
+    /// </summary>
+    public int? SortOrder { get; init; }
+
+    /// <summary>
+    /// Segmentation type.
+    /// </summary>
+    public UpworkSegmentationType? SegmentationType { get; init; }
+
+    /// <summary>
+    /// Linked skill.
+    /// </summary>
+    public UpworkMarketplacePostingOntologyEntity? Skill { get; init; }
+}
+
+/// <summary>
+/// Marketplace segmentation type metadata.
+/// </summary>
+public sealed record UpworkSegmentationType
+{
+    /// <summary>
+    /// Segmentation type ID.
+    /// </summary>
+    public string? Id { get; init; }
+
+    /// <summary>
+    /// Segmentation type name.
+    /// </summary>
+    public string? Name { get; init; }
+
+    /// <summary>
+    /// Reference name.
+    /// </summary>
+    public string? ReferenceName { get; init; }
+}
+
+/// <summary>
+/// Marketplace job contract terms.
+/// </summary>
+public sealed record UpworkMarketplacePostingContractTerms
+{
+    /// <summary>
+    /// Contract start date.
+    /// </summary>
+    public string? ContractStartDate { get; init; }
+
+    /// <summary>
+    /// Contract end date.
+    /// </summary>
+    public string? ContractEndDate { get; init; }
+
+    /// <summary>
+    /// Contract type.
+    /// </summary>
+    public string? ContractType { get; init; }
+
+    /// <summary>
+    /// On-site work requirement.
+    /// </summary>
+    public string? OnSiteType { get; init; }
+
+    /// <summary>
+    /// Number of people to hire.
+    /// </summary>
+    public int? PersonsToHire { get; init; }
+
+    /// <summary>
+    /// Required experience level.
+    /// </summary>
+    public string? ExperienceLevel { get; init; }
+
+    /// <summary>
+    /// Whether the client is unsure about number of people to hire.
+    /// </summary>
+    public bool? NotSurePersonsToHire { get; init; }
+
+    /// <summary>
+    /// Whether the client is unsure about experience level.
+    /// </summary>
+    public bool? NotSureExperiencelevel { get; init; }
+
+    /// <summary>
+    /// Fixed-price terms.
+    /// </summary>
+    public UpworkFixedPriceContractTerms? FixedPriceContractTerms { get; init; }
+
+    /// <summary>
+    /// Hourly terms.
+    /// </summary>
+    public UpworkHourlyContractTerms? HourlyContractTerms { get; init; }
+}
+
+/// <summary>
+/// Fixed-price contract terms.
+/// </summary>
+public sealed record UpworkFixedPriceContractTerms
+{
+    /// <summary>
+    /// Fixed budget amount.
+    /// </summary>
+    public UpworkMoney? Amount { get; init; }
+
+    /// <summary>
+    /// Maximum budget amount.
+    /// </summary>
+    public UpworkMoney? MaxAmount { get; init; }
+
+    /// <summary>
+    /// Expected project duration.
+    /// </summary>
+    public UpworkEngagementDuration? EngagementDuration { get; init; }
+}
+
+/// <summary>
+/// Hourly contract terms.
+/// </summary>
+public sealed record UpworkHourlyContractTerms
+{
+    /// <summary>
+    /// Expected engagement duration.
+    /// </summary>
+    public UpworkEngagementDuration? EngagementDuration { get; init; }
+
+    /// <summary>
+    /// Engagement type.
+    /// </summary>
+    public string? EngagementType { get; init; }
+
+    /// <summary>
+    /// Whether the client is unsure about project duration.
+    /// </summary>
+    public bool? NotSureProjectDuration { get; init; }
+
+    /// <summary>
+    /// Hourly budget type.
+    /// </summary>
+    public string? HourlyBudgetType { get; init; }
+
+    /// <summary>
+    /// Minimum hourly budget.
+    /// </summary>
+    public decimal? HourlyBudgetMin { get; init; }
+
+    /// <summary>
+    /// Maximum hourly budget.
+    /// </summary>
+    public decimal? HourlyBudgetMax { get; init; }
+}
+
+/// <summary>
+/// Marketplace job contractor selection criteria.
+/// </summary>
+public sealed record UpworkMarketplacePostingContractorSelection
+{
+    /// <summary>
+    /// Proposal requirements for the job posting.
+    /// </summary>
+    public UpworkMarketplaceProposalRequirements? ProposalRequirement { get; init; }
+
+    /// <summary>
+    /// Freelancer qualification criteria.
+    /// </summary>
+    public UpworkMarketplaceQualification? Qualification { get; init; }
+
+    /// <summary>
+    /// Location constraints.
+    /// </summary>
+    public UpworkMarketplaceLocation? Location { get; init; }
+}
+
+/// <summary>
+/// Proposal requirements advertised on a marketplace job.
+/// </summary>
+public sealed record UpworkMarketplaceProposalRequirements
+{
+    /// <summary>
+    /// Whether a cover letter is required.
+    /// </summary>
+    public bool? CoverLetterRequired { get; init; }
+
+    /// <summary>
+    /// Whether freelancer-created milestones are allowed.
+    /// </summary>
+    public bool? FreelancerMilestonesAllowed { get; init; }
+
+    /// <summary>
+    /// Screening questions.
+    /// </summary>
+    public IReadOnlyList<UpworkMarketplaceQuestion>? ScreeningQuestions { get; init; }
+}
+
+/// <summary>
+/// Marketplace screening question.
+/// </summary>
+public sealed record UpworkMarketplaceQuestion
+{
+    /// <summary>
+    /// Question text.
+    /// </summary>
+    public string? Question { get; init; }
+
+    /// <summary>
+    /// Sequence number.
+    /// </summary>
+    public int? SequenceNumber { get; init; }
+}
+
+/// <summary>
+/// Marketplace freelancer qualification criteria.
+/// </summary>
+public sealed record UpworkMarketplaceQualification
+{
+    /// <summary>
+    /// Type of contractor.
+    /// </summary>
+    public string? ContractorType { get; init; }
+
+    /// <summary>
+    /// Required English proficiency.
+    /// </summary>
+    public string? EnglishProficiency { get; init; }
+
+    /// <summary>
+    /// Whether portfolio is required.
+    /// </summary>
+    public bool? HasPortfolio { get; init; }
+
+    /// <summary>
+    /// Minimum hours worked.
+    /// </summary>
+    public int? HoursWorked { get; init; }
+
+    /// <summary>
+    /// Whether rising talent is preferred.
+    /// </summary>
+    public bool? RisingTalent { get; init; }
+
+    /// <summary>
+    /// Minimum job success score.
+    /// </summary>
+    public int? JobSuccessScore { get; init; }
+
+    /// <summary>
+    /// Minimum earning requirement.
+    /// </summary>
+    public string? MinEarning { get; init; }
+
+    /// <summary>
+    /// Preferred freelancer groups.
+    /// </summary>
+    public IReadOnlyList<UpworkPreferredGroup>? PreferredGroups { get; init; }
+
+    /// <summary>
+    /// Preferred tests or certifications.
+    /// </summary>
+    public IReadOnlyList<UpworkPreferredTest>? PreferenceTests { get; init; }
+}
+
+/// <summary>
+/// Preferred freelancer group.
+/// </summary>
+public sealed record UpworkPreferredGroup
+{
+    /// <summary>
+    /// Group ID.
+    /// </summary>
+    public string? Id { get; init; }
+
+    /// <summary>
+    /// Group name.
+    /// </summary>
+    public string? Name { get; init; }
+
+    /// <summary>
+    /// Group logo URL.
+    /// </summary>
+    public Uri? Logo { get; init; }
+}
+
+/// <summary>
+/// Preferred test or certification.
+/// </summary>
+public sealed record UpworkPreferredTest
+{
+    /// <summary>
+    /// Test ID.
+    /// </summary>
+    public string? Id { get; init; }
+
+    /// <summary>
+    /// Test name.
+    /// </summary>
+    public string? Name { get; init; }
+}
+
+/// <summary>
+/// Marketplace location constraints.
+/// </summary>
+public sealed record UpworkMarketplaceLocation
+{
+    /// <summary>
+    /// Allowed countries.
+    /// </summary>
+    public IReadOnlyList<string>? Countries { get; init; }
+
+    /// <summary>
+    /// Allowed states.
+    /// </summary>
+    public IReadOnlyList<string>? States { get; init; }
+
+    /// <summary>
+    /// Allowed timezones.
+    /// </summary>
+    public IReadOnlyList<string>? Timezones { get; init; }
+
+    /// <summary>
+    /// Whether local check is required.
+    /// </summary>
+    public bool? LocalCheckRequired { get; init; }
+
+    /// <summary>
+    /// Whether this is local-market only.
+    /// </summary>
+    public bool? LocalMarket { get; init; }
+
+    /// <summary>
+    /// Specific geographic areas.
+    /// </summary>
+    public IReadOnlyList<UpworkArea>? Areas { get; init; }
+
+    /// <summary>
+    /// Whether the client is unsure about location preference.
+    /// </summary>
+    public bool? NotSureLocationPreference { get; init; }
+
+    /// <summary>
+    /// Description of local requirement.
+    /// </summary>
+    public string? LocalDescription { get; init; }
+
+    /// <summary>
+    /// Description of location flexibility.
+    /// </summary>
+    public string? LocalFlexibilityDescription { get; init; }
+}
+
+/// <summary>
+/// Geographic area element.
+/// </summary>
+public sealed record UpworkArea
+{
+    /// <summary>
+    /// Area ID.
+    /// </summary>
+    public string? Id { get; init; }
+
+    /// <summary>
+    /// Area type.
+    /// </summary>
+    public string? AreaType { get; init; }
+
+    /// <summary>
+    /// Area name.
+    /// </summary>
+    public string? Name { get; init; }
+}
+
+/// <summary>
+/// Public-facing marketplace company information.
+/// </summary>
+public sealed record UpworkMarketplacePublicCompanyInfo
+{
+    /// <summary>
+    /// Company ID.
+    /// </summary>
+    public string? Id { get; init; }
+
+    /// <summary>
+    /// Legacy organization type.
+    /// </summary>
+    public string? LegacyType { get; init; }
+
+    /// <summary>
+    /// Whether teams are enabled.
+    /// </summary>
+    public bool? TeamsEnabled { get; init; }
+
+    /// <summary>
+    /// Whether the company can hire.
+    /// </summary>
+    public bool? CanHire { get; init; }
+
+    /// <summary>
+    /// Whether the company is hidden.
+    /// </summary>
+    public bool? Hidden { get; init; }
+
+    /// <summary>
+    /// State.
+    /// </summary>
+    public string? State { get; init; }
+
+    /// <summary>
+    /// City.
+    /// </summary>
+    public string? City { get; init; }
+
+    /// <summary>
+    /// Timezone.
+    /// </summary>
+    public string? Timezone { get; init; }
+
+    /// <summary>
+    /// Accounting entity code.
+    /// </summary>
+    public string? AccountingEntity { get; init; }
+
+    /// <summary>
+    /// Billing type.
+    /// </summary>
+    public string? BillingType { get; init; }
 }
 
 /// <summary>
