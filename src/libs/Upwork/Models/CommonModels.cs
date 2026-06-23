@@ -9,8 +9,9 @@ namespace Upwork;
 public sealed record UpworkMoney
 {
     /// <summary>
-    /// Numeric amount value.
+    /// Numeric amount value. Upwork documents this as a string, but some responses return a JSON number.
     /// </summary>
+    [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
     public decimal? RawValue { get; init; }
 
     /// <summary>

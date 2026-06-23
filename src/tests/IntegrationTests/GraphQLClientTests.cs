@@ -229,6 +229,7 @@ public partial class Tests
         job?.Id.Should().Be("job-1");
         job?.Title.Should().Be("Build a GraphQL SDK");
         job?.TotalApplicants.Should().Be(3);
+        job?.Amount?.RawValue.Should().Be(1000);
         job?.Client?.VerificationStatus.Should().Be("VERIFIED");
         job?.Client?.CompanyName.Should().Be("Acme");
         job?.Client?.LastContractTitle.Should().Be("Previous SDK");
@@ -239,6 +240,7 @@ public partial class Tests
         job?.Job?.ContractTerms?.HourlyContractTerms?.HourlyBudgetMin.Should().Be(50);
         job?.Job?.ClientCompanyPublic?.CanHire.Should().BeTrue();
         handler.Requests[0].Content.Should().Contain("marketplaceJobPostingsSearch");
+        handler.Requests[0].Content.Should().Contain("fragment MarketplaceJobPostingFields on MarketplaceJobPosting");
         handler.Requests[0].Content.Should().NotContain("marketplaceJobPostings(");
     }
 
@@ -273,7 +275,7 @@ public partial class Tests
                       "avgRateBid": {"rawValue": 90, "currency": "USD", "displayValue": "$90"},
                       "minRateBid": {"rawValue": 70, "currency": "USD", "displayValue": "$70"},
                       "maxRateBid": {"rawValue": 120, "currency": "USD", "displayValue": "$120"},
-                      "avgInterviewedRateBid": {"rawValue": 95, "currency": "USD", "displayValue": "$95"}
+                      "avgInterviewedRateBid": {"rawValue": "95.5", "currency": "USD", "displayValue": "$95.50"}
                     },
                     "jobActivity": {
                       "lastClientActivity": "2026-01-04T00:00:00Z",
@@ -358,7 +360,7 @@ public partial class Tests
                     "notSureExperiencelevel": false,
                     "fixedPriceContractTerms": {
                       "amount": {"rawValue": 5000, "currency": "USD", "displayValue": "$5,000"},
-                      "maxAmount": {"rawValue": 7500, "currency": "USD", "displayValue": "$7,500"},
+                      "maxAmount": {"rawValue": "7500", "currency": "USD", "displayValue": "$7,500"},
                       "engagementDuration": {"id": "duration-2", "label": "3 to 6 months", "weeks": 24}
                     },
                     "hourlyContractTerms": null
@@ -417,7 +419,7 @@ public partial class Tests
         job?.Id.Should().Be("job-2");
         job?.Ownership?.Company?.Name.Should().Be("Contoso");
         job?.Annotations?.CustomFields.Should().ContainSingle().Which.Value?.GetString().Should().Be("high");
-        job?.ActivityStat?.ApplicationsBidStats?.AvgInterviewedRateBid?.RawValue.Should().Be(95);
+        job?.ActivityStat?.ApplicationsBidStats?.AvgInterviewedRateBid?.RawValue.Should().Be(95.5m);
         job?.Classification?.Skills.Should().ContainSingle().Which.PreferredLabel.Should().Be("GraphQL");
         job?.SegmentationData?.SegmentationValues.Should().ContainSingle()
             .Which.SegmentationInfo?.SegmentationType?.ReferenceName.Should().Be("project");
@@ -428,6 +430,7 @@ public partial class Tests
         job?.ContractorSelection?.Location?.Areas.Should().ContainSingle().Which.Name.Should().Be("San Francisco");
         job?.ClientCompanyPublic?.City.Should().Be("San Francisco");
         handler.Requests[0].Content.Should().Contain("marketplaceJobPosting");
+        handler.Requests[0].Content.Should().Contain("fragment MarketplaceJobPostingFields on MarketplaceJobPosting");
     }
 
     [TestMethod]

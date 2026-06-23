@@ -15,6 +15,7 @@ C# SDK for the official Upwork GraphQL API, focused on OAuth2 authorization and 
 - Optional `X-Upwork-API-TenantId` header support
 - `companySelector` helper for organization context discovery
 - `marketplaceJobPostingsSearch` wrapper with cursor pagination and sort attributes
+- `marketplaceJobPosting` wrapper for expanded job details
 - `marketplaceJobPostingsContents` wrapper for job detail/content lookup
 - Typed DTOs for marketplace job IDs, title, description, published date, ciphertext, annotations, skills, budget/hourly/client/proposal fields when returned by Upwork
 - GraphQL missing-scope exception handling and HTTP 429 rate-limit hooks
@@ -123,6 +124,46 @@ if (firstJobId is { Length: > 0 })
 }
 ```
 
+Read expanded job fields from search results or direct detail lookup:
+
+```csharp
+var search = await client.SearchMarketplaceJobPostingsAsync(
+    UpworkMarketplaceJobFilters.Keywords("csharp backend", first: 5));
+
+foreach (var edge in search.Edges ?? [])
+{
+    var result = edge.Node;
+    var posting = result?.Job;
+    var hourlyTerms = posting?.ContractTerms?.HourlyContractTerms;
+    var fixedPriceTerms = posting?.ContractTerms?.FixedPriceContractTerms;
+    var skills = posting?.Classification?.Skills?
+        .Select(skill => skill.PreferredLabel)
+        .Where(skill => skill is { Length: > 0 });
+
+    Console.WriteLine(result?.Title ?? posting?.Content?.Title);
+    Console.WriteLine($"Hourly: {hourlyTerms?.HourlyBudgetMin}-{hourlyTerms?.HourlyBudgetMax}");
+    Console.WriteLine($"Fixed: {fixedPriceTerms?.Amount?.DisplayValue}");
+    Console.WriteLine($"Client: {posting?.ClientCompanyPublic?.City}, {posting?.ClientCompanyPublic?.State}");
+    Console.WriteLine($"Activity: {posting?.ActivityStat?.JobActivity?.TotalHired} hires");
+    Console.WriteLine($"Skills: {string.Join(", ", skills ?? [])}");
+}
+
+var detailJobId = search.Edges?
+    .Select(edge => edge.Node?.Id)
+    .FirstOrDefault(id => id is { Length: > 0 });
+
+if (detailJobId is { Length: > 0 })
+{
+    var posting = await client.GetMarketplaceJobPostingAsync(detailJobId);
+    var questions = posting?.ContractorSelection?.ProposalRequirement?.ScreeningQuestions;
+
+    foreach (var question in questions ?? [])
+    {
+        Console.WriteLine(question.Question);
+    }
+}
+```
+
 For backend-owned token storage, implement `IUpworkAccessTokenProvider` and pass it through `UpworkClientOptions.AccessTokenProvider`.
 
 <!-- EXAMPLES:START -->
@@ -140,7 +181,7 @@ HTTP 429 responses throw `UpworkRateLimitException` with `RetryAfter` when Upwor
 - Refresh tokens with `RefreshTokenAsync` before access-token expiry and update stored tokens atomically.
 - Use `GetCompanySelectorAsync` to discover organization context, then set `TenantId` when your workflow requires `X-Upwork-API-TenantId`.
 - Use `SearchMarketplaceJobPostingsAsync`; do not use deprecated `marketplaceJobPostings`.
-- Use `GetMarketplaceJobPostingsContentsAsync` for job content/detail lookup.
+- Use `GetMarketplaceJobPostingAsync` for expanded job details, or `GetMarketplaceJobPostingsContentsAsync` for bulk content lookup.
 - Handle `UpworkMissingScopeException` by asking the user/admin to grant `Common Entities - Read-Only Access` and `Read marketplace Job Postings`.
 - Handle `UpworkRateLimitException` or configure `IUpworkRateLimitHandler` for retry/backoff.
 - Do not log or persist authorization codes, access tokens, refresh tokens, client secrets, or full `Authorization` headers.
