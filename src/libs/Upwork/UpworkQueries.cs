@@ -310,6 +310,25 @@ internal static class UpworkQueries
         }
         """;
 
+    public const string CompanySelector =
+        """
+        query companySelector {
+          companySelector {
+            items {
+              title
+              photoUrl
+              organizationId
+              organizationRid
+              organizationType
+              organizationLegacyType
+              organizationEnterpriseType
+              legacyEnterpriseOrganization
+              typeTitle
+            }
+          }
+        }
+        """;
+
     public const string ProposalMetadata =
         """
         query proposalMetadata($reasonType: ReasonType) {
@@ -457,24 +476,4 @@ internal static class UpworkQueries
         }
         """;
 
-    public const string ConfirmFiles =
-        """
-        mutation confirmFiles($fileIds: [ID!]!, $skipMissing: Boolean) {
-          confirmFiles(fileIds: $fileIds, skipMissing: $skipMissing)
-        }
-        """;
-
-    public const string CreateDirectUploadLinkForJobApplicationProposal =
-        """
-        mutation createDirectUploadLinkForJAClientProposal($input: CreateDirectUploadLinkInput!) {
-          createDirectUploadLinkForJAClientProposal(input: $input) {
-            id
-            uploadUrl
-            formKeyValues {
-              key
-              value
-            }
-          }
-        }
-        """;
 }

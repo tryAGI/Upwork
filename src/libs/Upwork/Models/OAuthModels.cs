@@ -1,12 +1,62 @@
-using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Upwork;
 
 /// <summary>
+/// OAuth2 application configuration for Upwork authorization-code and refresh-token grants.
+/// </summary>
+public sealed record UpworkOAuthConfig
+{
+    /// <summary>
+    /// Creates Upwork OAuth2 application configuration.
+    /// </summary>
+    public UpworkOAuthConfig(string clientId, string clientSecret, Uri redirectUri)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(clientId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(clientSecret);
+        ArgumentNullException.ThrowIfNull(redirectUri);
+
+        ClientId = clientId;
+        ClientSecret = clientSecret;
+        RedirectUri = redirectUri;
+    }
+
+    /// <summary>
+    /// OAuth2 client identifier.
+    /// </summary>
+    public string ClientId { get; init; }
+
+    /// <summary>
+    /// OAuth2 client secret.
+    /// </summary>
+    public string ClientSecret { get; init; }
+
+    /// <summary>
+    /// Redirect URI configured for the Upwork application.
+    /// </summary>
+    public Uri RedirectUri { get; init; }
+}
+
+/// <summary>
+/// Upwork OAuth scope labels required by the read-only marketplace job workflow.
+/// </summary>
+public static class UpworkOAuthScopeNames
+{
+    /// <summary>
+    /// Common entities read-only access.
+    /// </summary>
+    public const string CommonEntitiesReadOnly = "Common Entities - Read-Only Access";
+
+    /// <summary>
+    /// Read marketplace job postings.
+    /// </summary>
+    public const string ReadMarketplaceJobPostings = "Read marketplace Job Postings";
+}
+
+/// <summary>
 /// OAuth token response returned by Upwork.
 /// </summary>
-public sealed record UpworkTokenResponse
+public sealed class UpworkTokenResponse
 {
     /// <summary>
     /// Bearer access token.
@@ -38,9 +88,4 @@ public sealed record UpworkTokenResponse
     [JsonPropertyName("scope")]
     public string? Scope { get; init; }
 
-    /// <summary>
-    /// Additional provider-specific token properties.
-    /// </summary>
-    [JsonExtensionData]
-    public IDictionary<string, JsonElement>? AdditionalProperties { get; init; }
 }

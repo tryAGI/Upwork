@@ -8,16 +8,6 @@ nav:
 - Overview: index.md
 - Guides:
   - Authentication: guides/authentication.md
-  - Proposal Mutations: guides/proposal-mutations.md
-# EXAMPLES:START
-- Examples:
-  - Public Marketplace Job Search: examples/public-marketplace-job-search.md
-  - Authenticated Marketplace Job Search: examples/marketplace-job-search.md
-  - Marketplace Job Content: examples/marketplace-job-content.md
-  - Proposal Metadata: examples/proposal-metadata.md
-  - Vendor Proposal Search: examples/vendor-proposal-search.md
-  - Vendor Proposal Details: examples/vendor-proposal-details.md
-# EXAMPLES:END
 
 theme:
   name: tryagi

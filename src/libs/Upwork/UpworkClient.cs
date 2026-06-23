@@ -18,7 +18,10 @@ public sealed class UpworkClient : IUpworkClient, IDisposable
 
     private readonly HttpClient _httpClient;
     private readonly bool _disposeHttpClient;
+    private readonly IUpworkRateLimitHandler? _rateLimitHandler;
+    private readonly int _maxRateLimitRetries;
     private string? _accessToken;
+    private IUpworkAccessTokenProvider? _accessTokenProvider;
     private string? _tenantId;
 
     /// <summary>
@@ -29,12 +32,39 @@ public sealed class UpworkClient : IUpworkClient, IDisposable
         string? tenantId = null,
         HttpClient? httpClient = null,
         Uri? endpoint = null)
+        : this(
+            new UpworkClientOptions
+            {
+                AccessToken = accessToken,
+                TenantId = tenantId,
+                Endpoint = endpoint,
+            },
+            httpClient)
     {
-        Endpoint = endpoint ?? DefaultEndpoint;
+    }
+
+    /// <summary>
+    /// Creates an Upwork GraphQL client.
+    /// </summary>
+    public UpworkClient(UpworkClientOptions options, HttpClient? httpClient = null)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        if (options.MaxRateLimitRetries < 0)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(options),
+                options.MaxRateLimitRetries,
+                "MaxRateLimitRetries cannot be negative.");
+        }
+
+        Endpoint = options.Endpoint ?? DefaultEndpoint;
         _httpClient = httpClient ?? new HttpClient();
         _disposeHttpClient = httpClient is null;
-        _accessToken = NormalizeAccessToken(accessToken);
-        _tenantId = string.IsNullOrWhiteSpace(tenantId) ? null : tenantId;
+        _accessToken = NormalizeAccessToken(options.AccessToken);
+        _accessTokenProvider = options.AccessTokenProvider;
+        _tenantId = string.IsNullOrWhiteSpace(options.TenantId) ? null : options.TenantId;
+        _rateLimitHandler = options.RateLimitHandler;
+        _maxRateLimitRetries = options.MaxRateLimitRetries;
     }
 
     /// <summary>
@@ -48,6 +78,7 @@ public sealed class UpworkClient : IUpworkClient, IDisposable
     public void SetAccessToken(string? accessToken)
     {
         _accessToken = NormalizeAccessToken(accessToken);
+        _accessTokenProvider = null;
     }
 
     /// <summary>
@@ -66,27 +97,62 @@ public sealed class UpworkClient : IUpworkClient, IDisposable
         ArgumentNullException.ThrowIfNull(request);
         ArgumentException.ThrowIfNullOrWhiteSpace(request.Query);
 
-        using var message = new HttpRequestMessage(HttpMethod.Post, Endpoint);
-        message.Content = new StringContent(
-            JsonSerializer.Serialize(request, UpworkJsonContext.Default.UpworkGraphQLRequest),
-            Encoding.UTF8,
-            "application/json");
+        var requestJson = JsonSerializer.Serialize(request, UpworkJsonContext.Default.UpworkGraphQLRequest);
 
-        ApplyHeaders(message);
-
-        using var response = await _httpClient
-            .SendAsync(message, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
-            .ConfigureAwait(false);
-        var responseBody = await response.Content
-            .ReadAsStringAsync(cancellationToken)
-            .ConfigureAwait(false);
-
-        if (!response.IsSuccessStatusCode)
+        for (var attempt = 0; ; attempt++)
         {
-            throw new UpworkHttpException(response.StatusCode, responseBody);
-        }
+            using var message = new HttpRequestMessage(HttpMethod.Post, Endpoint);
+            message.Content = new StringContent(requestJson, Encoding.UTF8, "application/json");
 
-        return JsonDocument.Parse(responseBody);
+            var accessToken = await ApplyHeadersAsync(message, cancellationToken).ConfigureAwait(false);
+
+            using var response = await _httpClient
+                .SendAsync(message, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+                .ConfigureAwait(false);
+            var responseBody = await response.Content
+                .ReadAsStringAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return JsonDocument.Parse(responseBody);
+            }
+
+            var sensitiveValues = new[] { accessToken };
+            if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+            {
+                var retryAfter = GetRetryAfter(response.Headers.RetryAfter);
+                var redactedBody = UpworkSecretRedactor.Redact(responseBody, sensitiveValues);
+                var rateLimitException = new UpworkRateLimitException(
+                    response.StatusCode,
+                    responseBody,
+                    retryAfter,
+                    sensitiveValues);
+
+                if (_rateLimitHandler is not null && attempt < _maxRateLimitRetries)
+                {
+                    var delay = await _rateLimitHandler
+                        .GetDelayAsync(
+                            new UpworkRateLimitContext(response.StatusCode, attempt, retryAfter, redactedBody),
+                            cancellationToken)
+                        .ConfigureAwait(false);
+
+                    if (delay is not null)
+                    {
+                        if (delay.Value > TimeSpan.Zero)
+                        {
+                            await Task.Delay(delay.Value, cancellationToken).ConfigureAwait(false);
+                        }
+
+                        continue;
+                    }
+                }
+
+                throw rateLimitException;
+            }
+
+            throw new UpworkHttpException(response.StatusCode, responseBody, sensitiveValues);
+        }
     }
 
     /// <inheritdoc />
@@ -233,6 +299,19 @@ public sealed class UpworkClient : IUpworkClient, IDisposable
     }
 
     /// <inheritdoc />
+    public async Task<UpworkCompanySelector> GetCompanySelectorAsync(CancellationToken cancellationToken = default)
+    {
+        var data = await ExecuteAsync(
+            UpworkQueries.CompanySelector,
+            UpworkInternalJsonContext.Default.CompanySelectorQueryData,
+            operationName: "companySelector",
+            cancellationToken: cancellationToken).ConfigureAwait(false);
+
+        return data?.CompanySelector
+            ?? throw new UpworkInvalidResponseException("The Upwork response did not include companySelector.");
+    }
+
+    /// <inheritdoc />
     public async Task<UpworkProposalMetadata> GetProposalMetadataAsync(
         string? reasonType = null,
         CancellationToken cancellationToken = default)
@@ -313,67 +392,6 @@ public sealed class UpworkClient : IUpworkClient, IDisposable
     }
 
     /// <inheritdoc />
-    public async Task<bool> ConfirmFilesAsync(
-        IReadOnlyList<string> fileIds,
-        bool skipMissing = true,
-        CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(fileIds);
-        if (fileIds.Count == 0)
-        {
-            throw new ArgumentException("At least one file ID is required.", nameof(fileIds));
-        }
-
-        foreach (var fileId in fileIds)
-        {
-            ArgumentException.ThrowIfNullOrWhiteSpace(fileId);
-        }
-
-        var variables = new JsonObject
-        {
-            ["fileIds"] = JsonSerializer.SerializeToNode(fileIds, UpworkJsonContext.Default.IReadOnlyListString),
-            ["skipMissing"] = skipMissing,
-        };
-
-        var data = await ExecuteAsync(
-            UpworkQueries.ConfirmFiles,
-            UpworkInternalJsonContext.Default.ConfirmFilesMutationData,
-            variables,
-            "confirmFiles",
-            cancellationToken).ConfigureAwait(false);
-
-        return data?.ConfirmFiles
-            ?? throw new UpworkInvalidResponseException("The Upwork response did not include confirmFiles.");
-    }
-
-    /// <inheritdoc />
-    public async Task<UpworkFileInfo> CreateJobApplicationProposalUploadLinkAsync(
-        UpworkCreateDirectUploadLinkInput input,
-        CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        ArgumentException.ThrowIfNullOrWhiteSpace(input.FileName);
-
-        var variables = new JsonObject
-        {
-            ["input"] = JsonSerializer.SerializeToNode(
-                input,
-                UpworkJsonContext.Default.UpworkCreateDirectUploadLinkInput),
-        };
-
-        var data = await ExecuteAsync(
-            UpworkQueries.CreateDirectUploadLinkForJobApplicationProposal,
-            UpworkInternalJsonContext.Default.CreateDirectUploadLinkForJobApplicationProposalMutationData,
-            variables,
-            "createDirectUploadLinkForJAClientProposal",
-            cancellationToken).ConfigureAwait(false);
-
-        return data?.CreateDirectUploadLinkForJobApplicationProposal
-            ?? throw new UpworkInvalidResponseException(
-                "The Upwork response did not include createDirectUploadLinkForJAClientProposal.");
-    }
-
-    /// <inheritdoc />
     public void Dispose()
     {
         if (_disposeHttpClient)
@@ -395,7 +413,46 @@ public sealed class UpworkClient : IUpworkClient, IDisposable
             errorsElement,
             UpworkJsonContext.Default.UpworkGraphQLErrorArray) ?? [];
 
+        if (errors.Any(IsMissingScopeError))
+        {
+            throw new UpworkMissingScopeException(errors);
+        }
+
         throw new UpworkGraphQLException(errors);
+    }
+
+    private static bool IsMissingScopeError(UpworkGraphQLError error)
+    {
+        var message = error.Message ?? string.Empty;
+        var extensions = error.Extensions?.GetRawText() ?? string.Empty;
+        var text = $"{message} {extensions}";
+
+        return text.Contains("scope", StringComparison.OrdinalIgnoreCase) ||
+            text.Contains("permission", StringComparison.OrdinalIgnoreCase) ||
+            text.Contains("OAuth", StringComparison.OrdinalIgnoreCase) ||
+            text.Contains("forbidden", StringComparison.OrdinalIgnoreCase) ||
+            text.Contains("unauthorized", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static TimeSpan? GetRetryAfter(RetryConditionHeaderValue? retryAfter)
+    {
+        if (retryAfter is null)
+        {
+            return null;
+        }
+
+        if (retryAfter.Delta is { } delta)
+        {
+            return delta < TimeSpan.Zero ? TimeSpan.Zero : delta;
+        }
+
+        if (retryAfter.Date is { } date)
+        {
+            var delay = date - DateTimeOffset.UtcNow;
+            return delay < TimeSpan.Zero ? TimeSpan.Zero : delay;
+        }
+
+        return null;
     }
 
     private static string? NormalizeAccessToken(string? accessToken)
@@ -411,18 +468,26 @@ public sealed class UpworkClient : IUpworkClient, IDisposable
             : accessToken;
     }
 
-    private void ApplyHeaders(HttpRequestMessage message)
+    private async ValueTask<string?> ApplyHeadersAsync(
+        HttpRequestMessage message,
+        CancellationToken cancellationToken)
     {
         message.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-        if (_accessToken is { Length: > 0 })
+        var accessToken = _accessTokenProvider is null
+            ? _accessToken
+            : NormalizeAccessToken(await _accessTokenProvider.GetAccessTokenAsync(cancellationToken).ConfigureAwait(false));
+
+        if (accessToken is { Length: > 0 })
         {
-            message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
+            message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
         }
 
         if (_tenantId is { Length: > 0 })
         {
             message.Headers.TryAddWithoutValidation("X-Upwork-API-TenantId", _tenantId);
         }
+
+        return accessToken;
     }
 }

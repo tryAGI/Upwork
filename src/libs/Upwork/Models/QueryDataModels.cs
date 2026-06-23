@@ -18,6 +18,10 @@ internal sealed record MarketplaceJobPostingsContentsQueryData(
     [property: JsonPropertyName("marketplaceJobPostingsContents")]
     IReadOnlyList<UpworkMarketplaceJobPostingContentRecord>? MarketplaceJobPostingsContents);
 
+internal sealed record CompanySelectorQueryData(
+    [property: JsonPropertyName("companySelector")]
+    UpworkCompanySelector? CompanySelector);
+
 internal sealed record ProposalMetadataQueryData(
     [property: JsonPropertyName("proposalMetadata")]
     UpworkProposalMetadata? ProposalMetadata);
@@ -29,11 +33,3 @@ internal sealed record VendorProposalQueryData(
 internal sealed record VendorProposalsQueryData(
     [property: JsonPropertyName("vendorProposals")]
     UpworkVendorProposalsConnection? VendorProposals);
-
-internal sealed record ConfirmFilesMutationData(
-    [property: JsonPropertyName("confirmFiles")]
-    bool? ConfirmFiles);
-
-internal sealed record CreateDirectUploadLinkForJobApplicationProposalMutationData(
-    [property: JsonPropertyName("createDirectUploadLinkForJAClientProposal")]
-    UpworkFileInfo? CreateDirectUploadLinkForJobApplicationProposal);

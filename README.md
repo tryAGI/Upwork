@@ -4,26 +4,103 @@
 [![dotnet](https://github.com/tryAGI/Upwork/actions/workflows/dotnet.yml/badge.svg?branch=main)](https://github.com/tryAGI/Upwork/actions/workflows/dotnet.yml)
 [![License: MIT](https://img.shields.io/github/license/tryAGI/Upwork)](https://github.com/tryAGI/Upwork/blob/main/LICENSE)
 
-C# SDK for the Upwork GraphQL API. The first supported surface is marketplace job search for freelancer workflows.
+C# SDK for the official Upwork GraphQL API, focused on OAuth2 authorization and read-only marketplace job search.
 
 ## Features
 
-- Public marketplace job search
-- Authenticated marketplace job search with cursor paging, sort attributes, and typed filter builders
-- Marketplace job content lookup by job ID
-- Proposal metadata lookup and vendor proposal list/detail workflows for freelancers and agencies
-- Proposal attachment upload-link and file-confirmation mutation helpers
-- Constants for marketplace job types, durations, workloads, experience levels, proposal statuses, and proposal sort fields
-- OAuth token exchange helpers for authorization-code, refresh-token, and enterprise client-credentials flows
-- Raw GraphQL execution escape hatch for fields that are not yet wrapped
+- OAuth2 Authorization Code Grant and Refresh Token Grant
+- Authorization URL builder for `https://www.upwork.com/ab/account-security/oauth2/authorize`
+- Token exchange against `https://www.upwork.com/api/v3/oauth2/token`
+- GraphQL client for `https://api.upwork.com/graphql` using `Authorization: Bearer`
+- Optional `X-Upwork-API-TenantId` header support
+- `companySelector` helper for organization context discovery
+- `marketplaceJobPostingsSearch` wrapper with cursor pagination and sort attributes
+- `marketplaceJobPostingsContents` wrapper for job detail/content lookup
+- Typed DTOs for marketplace job IDs, title, description, published date, ciphertext, annotations, skills, budget/hourly/client/proposal fields when returned by Upwork
+- GraphQL missing-scope exception handling and HTTP 429 rate-limit hooks
 - Source-generated JSON serialization for trimming and NativeAOT compatibility
 
-## Usage
+No mutation helpers are exposed for this OAuth/job-search workflow.
+
+## Required Scopes
+
+Select these scopes in the Upwork app/key settings for this read-only job-search use case:
+
+- `Common Entities - Read-Only Access`
+- `Read marketplace Job Postings`
+
+## OAuth
+
+Build an authorization URL from environment variables:
 
 ```csharp
 using Upwork;
 
-using var client = new UpworkClient(accessToken);
+var clientId =
+    Environment.GetEnvironmentVariable("UPWORK_CLIENT_ID") is { Length: > 0 } clientIdValue
+        ? clientIdValue
+        : throw new InvalidOperationException("UPWORK_CLIENT_ID is required.");
+var clientSecret =
+    Environment.GetEnvironmentVariable("UPWORK_CLIENT_SECRET") is { Length: > 0 } clientSecretValue
+        ? clientSecretValue
+        : throw new InvalidOperationException("UPWORK_CLIENT_SECRET is required.");
+var redirectUri =
+    Environment.GetEnvironmentVariable("UPWORK_REDIRECT_URI") is { Length: > 0 } redirectValue
+        ? new Uri(redirectValue)
+        : throw new InvalidOperationException("UPWORK_REDIRECT_URI is required.");
+
+var oauthConfig = new UpworkOAuthConfig(clientId, clientSecret, redirectUri);
+using var oauth = new UpworkOAuthClient(oauthConfig);
+
+var authorizationUrl = oauth.CreateAuthorizationUri(
+    state: Environment.GetEnvironmentVariable("UPWORK_OAUTH_STATE"));
+```
+
+Exchange an authorization code:
+
+```csharp
+var authorizationCode =
+    Environment.GetEnvironmentVariable("UPWORK_AUTHORIZATION_CODE") is { Length: > 0 } codeValue
+        ? codeValue
+        : throw new InvalidOperationException("UPWORK_AUTHORIZATION_CODE is required.");
+
+var token = await oauth.ExchangeAuthorizationCodeAsync(authorizationCode);
+```
+
+Refresh an access token:
+
+```csharp
+var refreshToken =
+    Environment.GetEnvironmentVariable("UPWORK_REFRESH_TOKEN") is { Length: > 0 } refreshValue
+        ? refreshValue
+        : throw new InvalidOperationException("UPWORK_REFRESH_TOKEN is required.");
+
+var refreshedToken = await oauth.RefreshTokenAsync(refreshToken);
+```
+
+The SDK returns tokens but does not persist them. Store `accessToken`, `refreshToken`, and expiry metadata in your application.
+
+## Job Search
+
+Use a bearer token from your own token store:
+
+```csharp
+using Upwork;
+
+var accessToken =
+    Environment.GetEnvironmentVariable("UPWORK_ACCESS_TOKEN") is { Length: > 0 } accessTokenValue
+        ? accessTokenValue
+        : throw new InvalidOperationException("UPWORK_ACCESS_TOKEN is required.");
+var tenantId = Environment.GetEnvironmentVariable("UPWORK_TENANT_ID");
+
+using var client = new UpworkClient(
+    new UpworkClientOptions
+    {
+        AccessToken = accessToken,
+        TenantId = string.IsNullOrWhiteSpace(tenantId) ? null : tenantId,
+    });
+
+var selector = await client.GetCompanySelectorAsync();
 
 var jobs = await client.SearchMarketplaceJobPostingsAsync(
     UpworkMarketplaceJobFilters.Keywords("dotnet graphql", first: 10) with
@@ -35,111 +112,34 @@ var jobs = await client.SearchMarketplaceJobPostingsAsync(
         new UpworkMarketplaceJobPostingSearchSort(
             UpworkMarketplaceJobPostingSearchSortFields.Recency),
     ]);
-```
 
-For public marketplace search, use `SearchPublicMarketplaceJobPostingsAsync` with `UpworkPublicMarketplaceJobFilter`.
-For freelancer proposal workflows, use `GetProposalMetadataAsync`, `SearchVendorProposalsAsync`, and `GetVendorProposalAsync`.
-Upwork's public GraphQL docs currently expose proposal attachment helper mutations, but not a vendor proposal submit/update mutation.
-
-<!-- EXAMPLES:START -->
-### Public Marketplace Job Search
-Search public marketplace jobs with the Upwork GraphQL API.
-
-```csharp
-using var client = new UpworkClient(accessToken);
-
-// Search current public marketplace jobs.
-var response = await client.SearchPublicMarketplaceJobPostingsAsync(
-    UpworkPublicMarketplaceJobFilters.Keywords("dotnet graphql", pageSize: 10) with
-    {
-        JobType = UpworkJobTypes.Fixed,
-        VerifiedPaymentOnly = true,
-    });
-```
-
-### Authenticated Marketplace Job Search
-Search marketplace jobs from an authenticated freelancer workflow.
-
-```csharp
-using var client = new UpworkClient(accessToken);
-
-// Search marketplace jobs with cursor pagination and recency sorting.
-var response = await client.SearchMarketplaceJobPostingsAsync(
-    UpworkMarketplaceJobFilters.Keywords("dotnet graphql", first: 10) with
-    {
-        VerifiedPaymentOnly = true,
-    },
-    sortAttributes:
-    [
-        new UpworkMarketplaceJobPostingSearchSort(
-            UpworkMarketplaceJobPostingSearchSortFields.Recency),
-    ]);
-```
-
-### Marketplace Job Content
-Fetch full marketplace job content after finding a job ID from search.
-
-```csharp
-using var client = new UpworkClient(accessToken);
-
-// Find a job, then fetch its content by ID.
-var search = await client.SearchMarketplaceJobPostingsAsync(
-    new UpworkMarketplaceJobFilter
-    {
-        SearchExpression = "dotnet",
-        Pagination = new UpworkCursorPagination(first: 1),
-    });
-
-var firstJob = search.Edges?.FirstOrDefault()?.Node;
-
-var job = await client.GetMarketplaceJobPostingAsync(firstJob.Id!);
-```
-
-### Proposal Metadata
-Read proposal metadata for freelancer proposal workflows.
-
-```csharp
-using var client = new UpworkClient(accessToken);
-
-// Fetch proposal reference metadata, including engagement durations and decline reasons.
-var metadata = await client.GetProposalMetadataAsync(UpworkReasonTypes.ProposalDecline);
-```
-
-### Vendor Proposal Search
-List vendor proposals for a freelancer or agency account.
-
-```csharp
-using var client = new UpworkClient(accessToken);
-
-// List accepted vendor proposals with cursor pagination.
-var response = await client.SearchVendorProposalsAsync(
-    UpworkVendorProposalFilters.ByStatus(UpworkProposalStatuses.Accepted),
-    pagination: new UpworkCursorPagination(first: 10));
-```
-
-### Vendor Proposal Details
-Read a vendor proposal after finding it in the freelancer proposal list.
-
-```csharp
-using var client = new UpworkClient(accessToken);
-
-// Find one accepted proposal and then load its detail record.
-var response = await client.SearchVendorProposalsAsync(
-    UpworkVendorProposalFilters.ByStatus(UpworkProposalStatuses.Accepted),
-    pagination: new UpworkCursorPagination(first: 1));
-
-var proposalId = response.Edges?
+var firstJobId = jobs.Edges?
     .Select(edge => edge.Node?.Id)
     .FirstOrDefault(id => id is { Length: > 0 });
 
-if (proposalId is not { Length: > 0 })
+if (firstJobId is { Length: > 0 })
 {
-    throw new AssertInconclusiveException("No accepted vendor proposals were returned for this account.");
+    var contents = await client.GetMarketplaceJobPostingsContentsAsync([firstJobId]);
 }
-
-var proposal = await client.GetVendorProposalAsync(proposalId);
 ```
-<!-- EXAMPLES:END -->
+
+For backend-owned token storage, implement `IUpworkAccessTokenProvider` and pass it through `UpworkClientOptions.AccessTokenProvider`.
+
+## Rate Limits
+
+HTTP 429 responses throw `UpworkRateLimitException` with `RetryAfter` when Upwork sends that header. To retry, provide an `IUpworkRateLimitHandler` and set `MaxRateLimitRetries`.
+
+## Migration Notes
+
+- Replace direct REST/OAuth code with `UpworkOAuthConfig` and `UpworkOAuthClient`.
+- Store tokens in your backend database or secret store; the SDK does not persist secrets.
+- Refresh tokens with `RefreshTokenAsync` before access-token expiry and update stored tokens atomically.
+- Use `GetCompanySelectorAsync` to discover organization context, then set `TenantId` when your workflow requires `X-Upwork-API-TenantId`.
+- Use `SearchMarketplaceJobPostingsAsync`; do not use deprecated `marketplaceJobPostings`.
+- Use `GetMarketplaceJobPostingsContentsAsync` for job content/detail lookup.
+- Handle `UpworkMissingScopeException` by asking the user/admin to grant `Common Entities - Read-Only Access` and `Read marketplace Job Postings`.
+- Handle `UpworkRateLimitException` or configure `IUpworkRateLimitHandler` for retry/backoff.
+- Do not log or persist authorization codes, access tokens, refresh tokens, client secrets, or full `Authorization` headers.
 
 ## Support
 

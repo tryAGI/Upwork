@@ -64,10 +64,21 @@ public class UpworkHttpException : UpworkException
     /// Creates an HTTP exception with status and response body details.
     /// </summary>
     public UpworkHttpException(HttpStatusCode statusCode, string? responseBody)
+        : this(statusCode, responseBody, null)
+    {
+    }
+
+    /// <summary>
+    /// Creates an HTTP exception with status, response body, and sensitive values to redact.
+    /// </summary>
+    public UpworkHttpException(
+        HttpStatusCode statusCode,
+        string? responseBody,
+        IEnumerable<string?>? sensitiveValues)
         : base($"Upwork returned HTTP {(int)statusCode} ({statusCode}).")
     {
         StatusCode = statusCode;
-        ResponseBody = responseBody;
+        ResponseBody = UpworkSecretRedactor.Redact(responseBody, sensitiveValues);
     }
 
     /// <summary>
@@ -79,6 +90,53 @@ public class UpworkHttpException : UpworkException
     /// Raw response body returned by Upwork, when available.
     /// </summary>
     public string? ResponseBody { get; }
+}
+
+/// <summary>
+/// Represents an HTTP 429 rate-limit response from Upwork.
+/// </summary>
+public sealed class UpworkRateLimitException : UpworkHttpException
+{
+    /// <summary>
+    /// Creates an empty rate-limit exception.
+    /// </summary>
+    public UpworkRateLimitException()
+    {
+    }
+
+    /// <summary>
+    /// Creates a rate-limit exception with a message.
+    /// </summary>
+    public UpworkRateLimitException(string? message)
+        : base(message)
+    {
+    }
+
+    /// <summary>
+    /// Creates a rate-limit exception with a message and inner exception.
+    /// </summary>
+    public UpworkRateLimitException(string? message, Exception? innerException)
+        : base(message, innerException)
+    {
+    }
+
+    /// <summary>
+    /// Creates a rate-limit exception.
+    /// </summary>
+    public UpworkRateLimitException(
+        HttpStatusCode statusCode,
+        string? responseBody,
+        TimeSpan? retryAfter,
+        IEnumerable<string?>? sensitiveValues)
+        : base(statusCode, responseBody, sensitiveValues)
+    {
+        RetryAfter = retryAfter;
+    }
+
+    /// <summary>
+    /// Delay parsed from the <c>Retry-After</c> header, when provided.
+    /// </summary>
+    public TimeSpan? RetryAfter { get; }
 }
 
 /// <summary>
@@ -136,6 +194,43 @@ public class UpworkGraphQLException : UpworkException
         return errors.Count == 1
             ? $"Upwork returned a GraphQL error: {errors[0].Message}"
             : $"Upwork returned {errors.Count} GraphQL errors: {errors[0].Message}";
+    }
+}
+
+/// <summary>
+/// Represents GraphQL errors caused by missing OAuth scopes or permissions.
+/// </summary>
+public sealed class UpworkMissingScopeException : UpworkGraphQLException
+{
+    /// <summary>
+    /// Creates an empty missing-scope exception.
+    /// </summary>
+    public UpworkMissingScopeException()
+    {
+    }
+
+    /// <summary>
+    /// Creates a missing-scope exception with a message.
+    /// </summary>
+    public UpworkMissingScopeException(string? message)
+        : base(message)
+    {
+    }
+
+    /// <summary>
+    /// Creates a missing-scope exception with a message and inner exception.
+    /// </summary>
+    public UpworkMissingScopeException(string? message, Exception? innerException)
+        : base(message, innerException)
+    {
+    }
+
+    /// <summary>
+    /// Creates a missing-scope exception with the returned GraphQL errors.
+    /// </summary>
+    public UpworkMissingScopeException(IReadOnlyList<UpworkGraphQLError> errors)
+        : base(errors)
+    {
     }
 }
 

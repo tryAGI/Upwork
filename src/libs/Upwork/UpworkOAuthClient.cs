@@ -19,14 +19,19 @@ public sealed class UpworkOAuthClient : IDisposable
 
     private readonly HttpClient _httpClient;
     private readonly bool _disposeHttpClient;
+    private readonly UpworkOAuthConfig? _config;
 
     /// <summary>
     /// Creates an OAuth client.
     /// </summary>
-    public UpworkOAuthClient(HttpClient? httpClient = null, Uri? tokenEndpoint = null)
+    public UpworkOAuthClient(
+        UpworkOAuthConfig? config = null,
+        HttpClient? httpClient = null,
+        Uri? tokenEndpoint = null)
     {
         _httpClient = httpClient ?? new HttpClient();
         _disposeHttpClient = httpClient is null;
+        _config = config;
         TokenEndpoint = tokenEndpoint ?? DefaultTokenEndpoint;
     }
 
@@ -38,11 +43,21 @@ public sealed class UpworkOAuthClient : IDisposable
     /// <summary>
     /// Builds the authorization URL for the authorization-code OAuth flow.
     /// </summary>
+    public Uri CreateAuthorizationUri(
+        string? state = null,
+        Uri? authorizationEndpoint = null)
+    {
+        var config = GetConfig();
+        return CreateAuthorizationUri(config.ClientId, config.RedirectUri, state, authorizationEndpoint);
+    }
+
+    /// <summary>
+    /// Builds the authorization URL for the authorization-code OAuth flow.
+    /// </summary>
     public static Uri CreateAuthorizationUri(
         string clientId,
         Uri redirectUri,
         string? state = null,
-        IEnumerable<string>? scopes = null,
         Uri? authorizationEndpoint = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(clientId);
@@ -62,17 +77,24 @@ public sealed class UpworkOAuthClient : IDisposable
             query.Add($"state={Uri.EscapeDataString(state)}");
         }
 
-        if (scopes is not null)
-        {
-            var scope = string.Join(' ', scopes);
-            if (!string.IsNullOrWhiteSpace(scope))
-            {
-                query.Add($"scope={Uri.EscapeDataString(scope)}");
-            }
-        }
-
         builder.Query = string.Join('&', query);
         return builder.Uri;
+    }
+
+    /// <summary>
+    /// Exchanges an authorization code for access and refresh tokens using configured OAuth settings.
+    /// </summary>
+    public Task<UpworkTokenResponse> ExchangeAuthorizationCodeAsync(
+        string code,
+        CancellationToken cancellationToken = default)
+    {
+        var config = GetConfig();
+        return ExchangeAuthorizationCodeAsync(
+            config.ClientId,
+            config.ClientSecret,
+            code,
+            config.RedirectUri,
+            cancellationToken);
     }
 
     /// <summary>
@@ -99,6 +121,22 @@ public sealed class UpworkOAuthClient : IDisposable
                 ["code"] = code,
                 ["redirect_uri"] = redirectUri.ToString(),
             },
+            [clientSecret, code],
+            cancellationToken);
+    }
+
+    /// <summary>
+    /// Exchanges a refresh token for a new access token using configured OAuth settings.
+    /// </summary>
+    public Task<UpworkTokenResponse> RefreshTokenAsync(
+        string refreshToken,
+        CancellationToken cancellationToken = default)
+    {
+        var config = GetConfig();
+        return RefreshTokenAsync(
+            config.ClientId,
+            config.ClientSecret,
+            refreshToken,
             cancellationToken);
     }
 
@@ -123,27 +161,7 @@ public sealed class UpworkOAuthClient : IDisposable
                 ["client_secret"] = clientSecret,
                 ["refresh_token"] = refreshToken,
             },
-            cancellationToken);
-    }
-
-    /// <summary>
-    /// Requests an enterprise client-credentials access token.
-    /// </summary>
-    public Task<UpworkTokenResponse> GetClientCredentialsTokenAsync(
-        string clientId,
-        string clientSecret,
-        CancellationToken cancellationToken = default)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(clientId);
-        ArgumentException.ThrowIfNullOrWhiteSpace(clientSecret);
-
-        return RequestTokenAsync(
-            new Dictionary<string, string>
-            {
-                ["grant_type"] = "client_credentials",
-                ["client_id"] = clientId,
-                ["client_secret"] = clientSecret,
-            },
+            [clientSecret, refreshToken],
             cancellationToken);
     }
 
@@ -158,11 +176,18 @@ public sealed class UpworkOAuthClient : IDisposable
 
     private async Task<UpworkTokenResponse> RequestTokenAsync(
         IReadOnlyDictionary<string, string> parameters,
+        IReadOnlyList<string?> sensitiveValues,
         CancellationToken cancellationToken)
     {
         using var content = new FormUrlEncodedContent(parameters);
+        using var request = new HttpRequestMessage(HttpMethod.Post, TokenEndpoint)
+        {
+            Content = content,
+        };
+        request.Headers.Accept.ParseAdd("application/json");
+
         using var response = await _httpClient
-            .PostAsync(TokenEndpoint, content, cancellationToken)
+            .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
             .ConfigureAwait(false);
         var responseBody = await response.Content
             .ReadAsStringAsync(cancellationToken)
@@ -170,10 +195,16 @@ public sealed class UpworkOAuthClient : IDisposable
 
         if (!response.IsSuccessStatusCode)
         {
-            throw new UpworkHttpException(response.StatusCode, responseBody);
+            throw new UpworkHttpException(response.StatusCode, responseBody, sensitiveValues);
         }
 
         return JsonSerializer.Deserialize(responseBody, UpworkJsonContext.Default.UpworkTokenResponse)
             ?? throw new UpworkInvalidResponseException("The Upwork token response was empty.");
+    }
+
+    private UpworkOAuthConfig GetConfig()
+    {
+        return _config
+            ?? throw new InvalidOperationException("This OAuth operation requires UpworkOAuthConfig.");
     }
 }
