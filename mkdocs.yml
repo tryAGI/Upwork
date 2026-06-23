@@ -8,6 +8,9 @@ nav:
 - Overview: index.md
 - Guides:
   - Authentication: guides/authentication.md
+# EXAMPLES:START
+
+# EXAMPLES:END
 
 theme:
   name: tryagi

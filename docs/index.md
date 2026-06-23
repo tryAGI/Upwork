@@ -125,6 +125,10 @@ if (firstJobId is { Length: > 0 })
 
 For backend-owned token storage, implement `IUpworkAccessTokenProvider` and pass it through `UpworkClientOptions.AccessTokenProvider`.
 
+<!-- EXAMPLES:START -->
+
+<!-- EXAMPLES:END -->
+
 ## Rate Limits
 
 HTTP 429 responses throw `UpworkRateLimitException` with `RetryAfter` when Upwork sends that header. To retry, provide an `IUpworkRateLimitHandler` and set `MaxRateLimitRetries`.
