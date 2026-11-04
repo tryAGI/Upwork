@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Upwork;
 
 /// <summary>
@@ -140,11 +142,13 @@ public sealed record UpworkProposalAuditDetails
     /// <summary>
     /// Creation timestamp.
     /// </summary>
+    [JsonConverter(typeof(UpworkDateTimeOffsetJsonConverter))]
     public DateTimeOffset? CreatedDateTime { get; init; }
 
     /// <summary>
     /// Last modification timestamp.
     /// </summary>
+    [JsonConverter(typeof(UpworkDateTimeOffsetJsonConverter))]
     public DateTimeOffset? ModifiedDateTime { get; init; }
 }
 

@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using System.Text.Json;
 
 namespace Upwork;
@@ -41,6 +42,7 @@ public sealed record UpworkPublicMarketplaceJobPosting
     /// <summary>
     /// Creation timestamp.
     /// </summary>
+    [JsonConverter(typeof(UpworkDateTimeOffsetJsonConverter))]
     public DateTimeOffset? CreatedDateTime { get; init; }
 
     /// <summary>
@@ -116,6 +118,7 @@ public sealed record UpworkPublicMarketplaceJobPosting
     /// <summary>
     /// Job timestamp.
     /// </summary>
+    [JsonConverter(typeof(UpworkDateTimeOffsetJsonConverter))]
     public DateTimeOffset? JobTs { get; init; }
 
     /// <summary>
@@ -131,6 +134,7 @@ public sealed record UpworkPublicMarketplaceJobPosting
     /// <summary>
     /// Published timestamp.
     /// </summary>
+    [JsonConverter(typeof(UpworkDateTimeOffsetJsonConverter))]
     public DateTimeOffset? PublishedDateTime { get; init; }
 
     /// <summary>
@@ -466,16 +470,19 @@ public sealed record UpworkMarketplaceJobPostingSearchResult
     /// <summary>
     /// Created timestamp.
     /// </summary>
+    [JsonConverter(typeof(UpworkDateTimeOffsetJsonConverter))]
     public DateTimeOffset? CreatedDateTime { get; init; }
 
     /// <summary>
     /// Published timestamp.
     /// </summary>
+    [JsonConverter(typeof(UpworkDateTimeOffsetJsonConverter))]
     public DateTimeOffset? PublishedDateTime { get; init; }
 
     /// <summary>
     /// Renewed timestamp.
     /// </summary>
+    [JsonConverter(typeof(UpworkDateTimeOffsetJsonConverter))]
     public DateTimeOffset? RenewedDateTime { get; init; }
 
     /// <summary>
@@ -583,6 +590,7 @@ public sealed record UpworkMarketplaceJobSearchClient
     /// <summary>
     /// Member-since timestamp.
     /// </summary>
+    [JsonConverter(typeof(UpworkDateTimeOffsetJsonConverter))]
     public DateTimeOffset? MemberSinceDateTime { get; init; }
 
     /// <summary>
@@ -1569,6 +1577,7 @@ public sealed record UpworkMarketplaceJobPostingContentRecord
     /// <summary>
     /// Published timestamp.
     /// </summary>
+    [JsonConverter(typeof(UpworkDateTimeOffsetJsonConverter))]
     public DateTimeOffset? PublishedDateTime { get; init; }
 
     /// <summary>
